@@ -838,11 +838,11 @@ namespace CornerkickUnitTest
         CornerkickManager.Club clbA = new CornerkickManager.Club();
         foreach (CornerkickGame.Player pl in gameTest.player[0]) {
           mn.ltPlayer.Add(pl);
-          clbH.ltPlayerId.Add(pl.iId);
+          clbH.ltPlayer.Add(pl);
         }
         foreach (CornerkickGame.Player pl in gameTest.player[1]) {
           mn.ltPlayer.Add(pl);
-          clbA.ltPlayerId.Add(pl.iId);
+          clbA.ltPlayer.Add(pl);
         }
         mn.ltClubs.Add(clbH);
         mn.ltClubs.Add(clbA);
@@ -928,7 +928,7 @@ namespace CornerkickUnitTest
         mn.doFormation(clb.iId);
 
         // Put last player on transferlist
-        mn.ui.putPlayerOnTransferlist(clb.ltPlayerId[clb.ltPlayerId.Count - 1], 0);
+        mn.ui.putPlayerOnTransferlist(clb.ltPlayer[clb.ltPlayer.Count - 1].iId, 0);
       }
 
       mn.calcMatchdays();
