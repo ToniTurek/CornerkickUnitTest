@@ -629,11 +629,13 @@ namespace CornerkickUnitTest
           Assert.AreEqual(1.0, iOffsiteH    / (double)iOffsiteA,    0.2);
 #endif
 
+#if _DoE
           fWf2 += fWfStep;
         }
         
         fWf1 += fWfStep;
       }
+#endif
     }
 
     [TestMethod]
