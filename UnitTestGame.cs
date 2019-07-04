@@ -1,6 +1,6 @@
 ﻿//#define _ML
 #define _AI2
-#define _DoE
+//#define _DoE
 
 using System;
 using System.Collections.Generic;
@@ -777,7 +777,7 @@ namespace CornerkickUnitTest
       }
 
       CornerkickGame.Game.Data gd0 = game0.data.Clone(true);
-      CornerkickGame.Game game1 = new CornerkickGame.Game(gd0, pl1, game0.data.nPlStart, game0.data.nPlRes);
+      CornerkickGame.Game game1 = new CornerkickGame.Game(gd0, pl1);
       game1.iStandard = game0.iStandard;
       game1.data.bInjuriesPossible = game0.data.bInjuriesPossible;
       game1.data.bCardsPossible    = game0.data.bCardsPossible;
@@ -878,7 +878,7 @@ namespace CornerkickUnitTest
       const int iLand = 36;
 
       CornerkickManager.Main mn = new CornerkickManager.Main();
-      
+
       //mn.setNewSeason();
 
       /////////////////////////////////////////////////////////////////////
@@ -896,6 +896,7 @@ namespace CornerkickUnitTest
       // Create nat. cup
       CornerkickManager.Cup cup = new CornerkickManager.Cup(bKo: true);
       cup.iId  = 2;
+      cup.sName = "National Cup";
       cup.iId2 = iLand;
       mn.ltCups.Add(cup);
 
@@ -903,6 +904,7 @@ namespace CornerkickUnitTest
       // Create league
       CornerkickManager.Cup league = new CornerkickManager.Cup(nGroups: 1, bGroupsTwoGames: true);
       league.iId  = 1;
+      league.sName = "League";
       league.iId2 = iLand;
       mn.ltCups.Add(league);
 
@@ -931,27 +933,74 @@ namespace CornerkickUnitTest
         mn.ui.putPlayerOnTransferlist(clb.ltPlayer[clb.ltPlayer.Count - 1].iId, 0);
       }
 
+      DateTime dtLeagueStart;
+      DateTime dtLeagueEnd;
+      mn.setSeasonStartEndDates(out dtLeagueStart, out dtLeagueEnd);
+
+      /////////////////////////////////////////////////////////////////////
+      // Create WC
+      CornerkickManager.Cup cupWc = new CornerkickManager.Cup(bKo: true, bKoTwoGames: false, nGroups: 2, bGroupsTwoGames: false, nQualifierKo: 2);
+      cupWc.iId = 7;
+      cupWc.sName = "World Cup";
+      cupWc.settings.iNeutral = 1;
+      cupWc.settings.dtStart = dtLeagueEnd.Date + new TimeSpan(20, 30, 00);
+      cupWc.settings.dtEnd   = mn.dtSeasonEnd.AddDays(-1).Date + new TimeSpan(20, 00, 00);
+      mn.ltCups.Add(cupWc);
+
+      byte[] iNations = new byte[8] { 3, 13, 29, 30, 33, 36, 45, 54 };
+      int iGroup = 0;
+      foreach (byte iN in iNations) {
+        CornerkickManager.Club clbNat = new CornerkickManager.Club();
+        clbNat.bNation = true;
+        clbNat.iId = mn.ltClubs.Count;
+        clbNat.sName = mn.sLand[iN];
+        clbNat.iLand = iN;
+        clbNat.formation = mn.ltFormationen[8];
+
+        List<CornerkickGame.Player> ltPlayerBest = mn.getBestPlayer(iN, clbNat.formation);
+        while ((ltPlayerBest = mn.getBestPlayer(iN, clbNat.formation)).Count < 22) mn.plr.newPlayer(iNat: iN);
+        //Assert.AreEqual(true, ltPlayerBest.Count >= 11);
+        //clbNat.ltPlayer = ltPlayerBest;
+
+        mn.ltClubs.Add(clbNat);
+
+        mn.doFormation(clbNat.iId);
+
+        cupWc.ltClubs[iGroup / 4].Add(clbNat);
+        iGroup++;
+      }
+
+      cupInter.settings.dtStart = dtLeagueStart.AddDays((int)((dtLeagueEnd - dtLeagueStart).TotalDays / 4.0)).Date + new TimeSpan(20, 45, 00);
+
       mn.calcMatchdays();
 
       mn.drawCup(cupInter);
       mn.drawCup(league);
+      mn.drawCup(cupWc);
+      
+      // Perform next step until end of season
+      while (mn.next() < 99) {
+        Debug.WriteLine(mn.dtDatum.ToString());
+      }
 
+      Debug.WriteLine("Start of season: " + mn.dtSeasonStart.ToString());
       foreach (CornerkickManager.Cup cupTmp in mn.ltCups) {
+        Debug.WriteLine(cupTmp.sName);
+        
         int iMd = 1;
         foreach (CornerkickManager.Cup.Matchday md in cupTmp.ltMatchdays) {
           if (md.ltGameData == null) break;
 
           Debug.WriteLine(iMd++.ToString().PadLeft(2) + " - " + md.dt.ToString());
           foreach (CornerkickGame.Game.Data gd in md.ltGameData) {
-            Debug.WriteLine("  " + gd.team[0].iTeamId.ToString().PadLeft(2) + " - " + gd.team[1].iTeamId.ToString().PadLeft(2));
+            string sGame = ("Team_" + gd.team[0].iTeamId.ToString()).PadLeft(7) + " - " + ("Team_" + gd.team[1].iTeamId.ToString()).PadLeft(7);
+            string sResult = mn.ui.getResultString(gd);
+            if (!string.IsNullOrEmpty(sResult)) sGame += " - " + sResult;
+            Debug.WriteLine("  " + sGame);
           }
         }
       }
-      
-      // Perform next step until end of season
-      while (mn.next() < 99) {
-        Debug.WriteLine(mn.dtDatum.ToString());
-      }
+      Debug.WriteLine("End of season: " + mn.dtSeasonEnd.ToString());
 
       // League
       List<CornerkickManager.Tool.TableItem> table = mn.tl.getLeagueTable(league);
