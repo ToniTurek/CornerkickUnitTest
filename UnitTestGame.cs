@@ -1126,13 +1126,14 @@ namespace CornerkickUnitTest
     */
 
     [TestMethod]
-    public void TestTrainingCamp()
+    public void TestTraining()
     {
-      float[] fCondi = new float[2];
-      float[] fFresh = new float[2];
-      float[] fMood  = new float[2];
+      const float fCondiIni = 0.8f;
 
-      for (byte i = 0; i < 2; i++) {
+      float fCondi0 = 0f;
+      float fFresh0 = 0f;
+      float fMood0  = 0f;
+      for (byte i = 0; i < 3; i++) {
         CornerkickManager.Main mn  = new CornerkickManager.Main();
         mn.dtDatum = mn.dtDatum.AddDays(1);
 
@@ -1145,35 +1146,71 @@ namespace CornerkickUnitTest
         clb.sName = "Team";
         clb.iLand = 0;
         clb.iDivision = 0;
-        clb.iUser = 0;
+        clb.user = usr;
         clb.training.iTraining[1] = 2; // Condition
+        clb.personal.iTrainerKondi = 4;
         mn.ltClubs.Add(clb);
 
+        usr.club = clb;
+
         CornerkickGame.Player pl = new CornerkickGame.Player();
-        pl.fCondition = 0.8f;
+        pl.fCondition = fCondiIni;
         pl.fFresh     = 0.8f;
         pl.fMoral     = 0.8f;
         pl.iClubId = 0;
         pl.dtBirthday = mn.dtDatum.AddYears(-25);
         clb.ltPlayer.Add(pl);
 
-        if (i > 0) {
+        if        (i == 1) { // Test trainer level 5
+          clb.personal.iTrainerKondi = 5;
+        } else if (i == 2) { // Test training camp
           CornerkickManager.TrainingCamp.Camp cmp = mn.tcp.ltCamps[1];
           mn.tcp.bookCamp(ref clb, cmp, mn.dtDatum.AddDays(-1), mn.dtDatum.AddDays(+1));
+        } else if (i == 3) { // Test doping
+          pl.doDoping(mn.ltDoping[1]);
         }
 
         CornerkickManager.TrainingCamp.Booking tcb = mn.tcp.getCurrentCamp(clb, mn.dtDatum);
 
+        float fCondiPre = pl.fCondition;
+        float fFreshPre = pl.fFresh;
+        float fMoodPre  = pl.fMoral;
+
         mn.plr.doTraining(ref pl, mn.dtDatum, tcb);
 
-        fCondi[i] = pl.fCondition;
-        fFresh[i] = pl.fFresh;
-        fMood [i] = pl.fMoral;
-      }
+        // Test
+        if        (i == 0) { // Test common training increase of condi. (3.03%)
+          Assert.AreEqual(0.8303127, pl.fCondition, 0.00001);
 
-      Assert.AreEqual(1.0101672, fCondi[1] / fCondi[0], 0.00001);
-      Assert.AreEqual(1.0005339, fFresh[1] / fFresh[0], 0.00001);
-      Assert.AreEqual(1.0003653, fMood [1] / fMood [0], 0.00001);
+          fCondi0 = pl.fCondition;
+          fFresh0 = pl.fFresh;
+          fMood0  = pl.fMoral;
+        } else if (i == 1) { // Test training increase with trainer level 5
+          Assert.AreEqual(1.0414059, pl.fCondition / fCondiPre, 0.00001);
+          Assert.AreEqual(0.9730000, pl.fFresh     / fFreshPre, 0.00001);
+          Assert.AreEqual(0.9921875, pl.fMoral     / fMoodPre,  0.00001);
+
+          Assert.AreEqual(1.0033867, pl.fCondition / fCondi0,   0.00001);
+          Assert.AreEqual(1.0000000, pl.fFresh     / fFresh0,   0.00001);
+          Assert.AreEqual(1.0000000, pl.fMoral     / fMood0,    0.00001);
+        } else if (i == 2) { // Test training increase with training camp
+          Assert.AreEqual(1.0522859, pl.fCondition / fCondiPre, 0.00001);
+          Assert.AreEqual(0.9737864, pl.fFresh     / fFreshPre, 0.00001);
+          Assert.AreEqual(0.9927326, pl.fMoral     / fMoodPre,  0.00001);
+
+          Assert.AreEqual(1.0138696, pl.fCondition / fCondi0,   0.00001);
+          Assert.AreEqual(1.0008082, pl.fFresh     / fFresh0,   0.00001);
+          Assert.AreEqual(1.0005494, pl.fMoral     / fMood0,    0.00001);
+        } else if (i == 3) { // Test training increase with doping
+          Assert.AreEqual(1.0378909, pl.fCondition / fCondiPre, 0.00001);
+          Assert.AreEqual(1.0000000, pl.fFresh     / fFreshPre, 0.00001);
+          Assert.AreEqual(1.0018748, pl.fMoral     / fMoodPre,  0.00001);
+
+          Assert.AreEqual(1.0378909, pl.fCondition / fCondi0,   0.00001);
+          Assert.AreEqual(1.0000000, pl.fFresh     / fFresh0,   0.00001);
+          Assert.AreEqual(1.0018748, pl.fMoral     / fMood0,    0.00001);
+        }
+      }
     }
 
     void addPlayerToClub(CornerkickManager.Main mn, ref CornerkickManager.Club clb)
