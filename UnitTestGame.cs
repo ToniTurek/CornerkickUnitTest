@@ -1043,7 +1043,7 @@ namespace CornerkickUnitTest
 #endif
 
       DateTime dtCurrent = mn.dtDatum;
-      int iSeasonCountTmp = mn.iSaisonCount;
+      int iSeasonCountTmp = mn.iSeason;
       float fInterest = mn.fz.fGlobalCreditInterest;
 
       List<string> ltUserId = new List<string>();
@@ -1061,7 +1061,7 @@ namespace CornerkickUnitTest
 
       // General
       Assert.AreEqual(dtCurrent, mn.dtDatum);
-      Assert.AreEqual(iSeasonCountTmp, mn.iSaisonCount);
+      Assert.AreEqual(iSeasonCountTmp, mn.iSeason);
       Assert.AreEqual(fInterest, mn.fz.fGlobalCreditInterest);
 
       // User id
@@ -1137,7 +1137,6 @@ namespace CornerkickUnitTest
         mn.dtDatum = mn.dtDatum.AddDays(1);
 
         CornerkickManager.User usr = new CornerkickManager.User();
-        usr.iTeam = 0;
         mn.ltUser.Add(usr);
 
         // Create Club
