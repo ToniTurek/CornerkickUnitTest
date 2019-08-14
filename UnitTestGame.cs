@@ -680,6 +680,8 @@ namespace CornerkickUnitTest
         CornerkickGame.Game gameLoad = mn.io.loadGame(fiGame.FullName);
 
         for (byte iS = 0; iS < iSeats.Length; iS++) Assert.AreEqual(iSeats[iS], gameTest.data.stadium.getSeats(iS));
+
+        Directory.Delete(mn.sHomeDir, true);
       }      
     }
 
