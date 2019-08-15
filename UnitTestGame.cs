@@ -1147,8 +1147,8 @@ namespace CornerkickUnitTest
         clb.iLand = 0;
         clb.iDivision = 0;
         clb.user = usr;
-        clb.training.iTraining[1] = 2; // Condition
-        clb.personal.iTrainerKondi = 4;
+        clb.training.iType[1] = 2; // Condition
+        clb.staff.iCondiTrainer = 4;
         mn.ltClubs.Add(clb);
 
         usr.club = clb;
@@ -1162,7 +1162,7 @@ namespace CornerkickUnitTest
         clb.ltPlayer.Add(pl);
 
         if        (i == 1) { // Test trainer level 5
-          clb.personal.iTrainerKondi = 5;
+          clb.staff.iCondiTrainer = 5;
         } else if (i == 2) { // Test training camp
           CornerkickManager.TrainingCamp.Camp cmp = mn.tcp.ltCamps[1];
           mn.tcp.bookCamp(ref clb, cmp, mn.dtDatum.AddDays(-1), mn.dtDatum.AddDays(+1));
