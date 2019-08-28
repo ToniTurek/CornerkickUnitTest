@@ -124,7 +124,7 @@ namespace CornerkickUnitTest
         plPass.iLookAt = (byte)(3 - (3 * iHA));
         gameTest.ball.ptPos = plPass.ptPos;
 
-        gameTest.doPass(plPass, new Point(gameTest.ptPitch.X * (1 - iHA), plPass.ptPos.Y));
+        gameTest.doPass(plPass, new Point(gameTest.ptPitch.X * (1 - iHA), plPass.ptPos.Y), false);
         gameTest.ball.iPassStep  = 2;
         gameTest.ball.nPassSteps = gameTest.ball.iPassStep;
 
@@ -145,7 +145,7 @@ namespace CornerkickUnitTest
         plPass.iLookAt = (byte)(3 - (3 * iHA));
         gameTest.ball.ptPos = plPass.ptPos;
 
-        gameTest.doPass(plPass, new Point(plPass.ptPos.X, gameTest.ptPitch.Y * ((2 * iHA) - 1)));
+        gameTest.doPass(plPass, new Point(plPass.ptPos.X, gameTest.ptPitch.Y * ((2 * iHA) - 1)), false);
         gameTest.ball.iPassStep  = 2;
         gameTest.ball.nPassSteps = gameTest.ball.iPassStep;
 
@@ -200,6 +200,30 @@ namespace CornerkickUnitTest
         
         //CornerkickGame.Player plRec = gameTest.ai.getReceiver(plAtBall);
       }
+    }
+
+    [TestMethod]
+    public void TestStealLowPass()
+    {
+      CornerkickGame.Game gameTest = game.tl.getDefaultGame(nPlStart: 3);
+      gameTest.next();
+      while (gameTest.iStandard != 0) gameTest.next();
+
+      gameTest.player[0][1].ptPos = new Point(31, 2);
+      gameTest.player[0][2].ptPos = new Point(75, 6);
+      gameTest.player[1][1].ptPos = new Point(53, 4);
+      gameTest.ball.plAtBall = gameTest.player[0][1];
+      gameTest.ball.ptPos = gameTest.player[0][1].ptPos;
+
+      gameTest.doPass(gameTest.player[0][1], gameTest.player[0][2], 0, true);
+      //gameTest.next(iPlayerNextAction: 1, iPassNextActionX: gameTest.player[0][2].ptPos.X, iPassNextActionY: gameTest.player[0][2].ptPos.Y);
+
+      while (gameTest.ball.iPassStep > 0) {
+        gameTest.next();
+      }
+      //float fDist = gameTest.tl.getShortestDistance(pt0, pt1, ptA, out ptF);
+      
+      //Assert.AreEqual(0.9701425, fDist, 0.00001);
     }
 
     [TestMethod]
@@ -487,9 +511,9 @@ namespace CornerkickUnitTest
             int iGoalH = 0;
             int iGoalA = 0;
             while (gameTest.next() > 0) {
-              if (gameTest.tl.correctPos(ref gameTest.ball.ptPos)) gameTest.tl.writeState();
+              if (CornerkickGame.Tool.correctPos(ref gameTest.ball.ptPos, gameTest.ptPitch.X)) gameTest.tl.writeState();
 
-              Assert.AreEqual(false, gameTest.tl.correctPos(ref gameTest.ball.ptPos), "Ball Position [" + ptBall.X + "/" + ptBall.Y + "] corrected. (Minute: " + gameTest.tsMinute.ToString() + ")");
+              Assert.AreEqual(false, CornerkickGame.Tool.correctPos(ref gameTest.ball.ptPos, gameTest.ptPitch.X), "Ball Position [" + ptBall.X + "/" + ptBall.Y + "] corrected. (Minute: " + gameTest.tsMinute.ToString() + ")");
         
               if (gameTest.ball.ptPos == ptBall) {
                 iBallCounter++;
@@ -585,9 +609,10 @@ namespace CornerkickUnitTest
           fShootDistA /= iShootsA;
 
           Debug.WriteLine("");
-          Debug.WriteLine("OOOOOOOOOOOOOOOOOOOOOOOO");
-          Debug.WriteLine("OOO    Statistics    OOO");
-          Debug.WriteLine("OOOOOOOOOOOOOOOOOOOOOOOO");
+          Debug.WriteLine("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+          Debug.WriteLine("OOO        Statistics        OOO");
+          Debug.WriteLine("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+          Debug.WriteLine("                Ave.  /  H/A");
           Debug.WriteLine("        goals: " + ((iGH          + iGA)          / (2.0 * nGames)).ToString("0.0000") + " / " + (iGH          / (double)iGA)         .ToString("0.0000"));
           Debug.WriteLine("  chance goal: " + ((fChanceGoalH + fChanceGoalA) /  2.0          ).ToString("0.0000") + " / " + (fChanceGoalH /         fChanceGoalA).ToString("0.0000"));
           Debug.WriteLine("       shoots: " + ((iShootsH     + iShootsA)     / (2.0 * nGames)).ToString("0.0000") + " / " + (iShootsH     / (double)iShootsA)    .ToString("0.0000"));
@@ -633,14 +658,14 @@ namespace CornerkickUnitTest
           swLog.Close();
 
 #if !_DoE
-          Assert.AreEqual(1.0, iGH          / (double)iGA,          0.2);
-          Assert.AreEqual(1.0, iShootsH     / (double)iShootsA,     0.2);
-          Assert.AreEqual(1.0, fChanceGoalH /         fChanceGoalA, 0.2);
-          Assert.AreEqual(1.0, fShootDistH  /         fShootDistA,  0.2);
-          Assert.AreEqual(1.0, iDuelH       / (double)iDuelA,       0.2);
-          Assert.AreEqual(1.0, iStepsH      / (double)iStepsA,      0.2);
-          Assert.AreEqual(1.0, iPossH       / (double)iPossA,       0.2);
-          Assert.AreEqual(1.0, iOffsiteH    / (double)iOffsiteA,    0.2);
+          if (iGA          > 0) Assert.AreEqual(1.0, iGH          / (double)iGA,          0.2);
+          if (iShootsA     > 0) Assert.AreEqual(1.0, iShootsH     / (double)iShootsA,     0.2);
+          if (fChanceGoalA > 0) Assert.AreEqual(1.0, fChanceGoalH /         fChanceGoalA, 0.2);
+          if (fShootDistA  > 0) Assert.AreEqual(1.0, fShootDistH  /         fShootDistA,  0.2);
+          if (iDuelA       > 0) Assert.AreEqual(1.0, iDuelH       / (double)iDuelA,       0.2);
+          if (iStepsA      > 0) Assert.AreEqual(1.0, iStepsH      / (double)iStepsA,      0.2);
+          if (iPossA       > 0) Assert.AreEqual(1.0, iPossH       / (double)iPossA,       0.2);
+          if (iOffsiteA    > 0) Assert.AreEqual(1.0, iOffsiteH    / (double)iOffsiteA,    0.2);
 #endif
 
 #if _DoE
@@ -1211,6 +1236,43 @@ namespace CornerkickUnitTest
           Assert.AreEqual(1.0018748, pl.fMoral     / fMood0,    0.00001);
         }
       }
+    }
+
+    [TestMethod]
+    public void TestShortestDistance()
+    {
+    /*
+    */
+      CornerkickGame.Game gameTest = game.tl.getDefaultGame();
+
+      // Test 1
+      Point pt10 = new Point( -2, +1);
+      Point pt11 = new Point( -6,  0);
+      Point pt1A = new Point(+10, +5);
+      Point pt1F = new Point();
+
+      float fDist1 = CornerkickGame.Tool.getShortestDistance(pt10, pt11, pt1A, out pt1F, gameTest.fConvertDist2Meter);
+      
+      Assert.AreEqual(14.727, fDist1, 0.00001);
+      Assert.AreEqual(-5, pt1F.X);
+      Assert.AreEqual( 0, pt1F.Y);
+
+      // Test 2
+      Point pt20 = new Point(-40,  +1);
+      Point pt21 = new Point( +6, -11);
+      Point pt2A = new Point(-20,  -5);
+      Point pt2F = new Point();
+
+      float fDist2 = CornerkickGame.Tool.getShortestDistance(pt20, pt21, pt2A, out pt2F, gameTest.fConvertDist2Meter);
+      
+      Assert.AreEqual(0.7572657, fDist2, 0.00001);
+      Assert.AreEqual(-19, pt2F.X);
+      Assert.AreEqual( -4, pt2F.Y);
+      /*
+      Assert.AreEqual(0.9701425, fDist, 0.00001);
+      Assert.AreEqual(10, ptF.X);
+      Assert.AreEqual( 4, ptF.Y);
+       */
     }
 
     void addPlayerToClub(CornerkickManager.Main mn, ref CornerkickManager.Club clb)
