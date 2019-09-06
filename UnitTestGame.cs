@@ -724,17 +724,17 @@ namespace CornerkickUnitTest
 
 #if !_AI2
         // Shoot
-        double fShootChance0 = game0.ai.getChanceShoot(game0.ball.plAtBall, game0.data.team[0].tc, game0.ball.nPassSteps > 0, Math.Abs(game0.iStandard) == 2);
-        double fShootChance1 = game1.ai.getChanceShoot(game1.ball.plAtBall, game1.data.team[1].tc, game1.ball.nPassSteps > 0, Math.Abs(game1.iStandard) == 2);
+        double fShootChance0 = game0.ai.getChanceShoot(game0.ball.plAtBall, game0.data.team[0].ltTactic[0], game0.ball.nPassSteps > 0, Math.Abs(game0.iStandard) == 2);
+        double fShootChance1 = game1.ai.getChanceShoot(game1.ball.plAtBall, game1.data.team[1].ltTactic[0], game1.ball.nPassSteps > 0, Math.Abs(game1.iStandard) == 2);
         if (fShootChance0 != fShootChance1) {
-          fShootChance0 = game0.ai.getChanceShoot(game0.ball.plAtBall, game0.data.team[0].tc, game0.ball.nPassSteps > 0, Math.Abs(game0.iStandard) == 2);
-          fShootChance1 = game1.ai.getChanceShoot(game1.ball.plAtBall, game1.data.team[1].tc, game1.ball.nPassSteps > 0, Math.Abs(game1.iStandard) == 2);
+          fShootChance0 = game0.ai.getChanceShoot(game0.ball.plAtBall, game0.data.team[0].ltTactic[0], game0.ball.nPassSteps > 0, Math.Abs(game0.iStandard) == 2);
+          fShootChance1 = game1.ai.getChanceShoot(game1.ball.plAtBall, game1.data.team[1].ltTactic[0], game1.ball.nPassSteps > 0, Math.Abs(game1.iStandard) == 2);
 
-          fShootChance0 = game0.ai.getChanceShoot(game0.ball.plAtBall, game0.data.team[0].tc, game0.ball.nPassSteps > 0, Math.Abs(game0.iStandard) == 2);
-          fShootChance1 = game1.ai.getChanceShoot(game1.ball.plAtBall, game1.data.team[1].tc, game1.ball.nPassSteps > 0, Math.Abs(game1.iStandard) == 2);
+          fShootChance0 = game0.ai.getChanceShoot(game0.ball.plAtBall, game0.data.team[0].ltTactic[0], game0.ball.nPassSteps > 0, Math.Abs(game0.iStandard) == 2);
+          fShootChance1 = game1.ai.getChanceShoot(game1.ball.plAtBall, game1.data.team[1].ltTactic[0], game1.ball.nPassSteps > 0, Math.Abs(game1.iStandard) == 2);
 
-          fShootChance0 = game0.ai.getChanceShoot(game0.ball.plAtBall, game0.data.team[0].tc, game0.ball.nPassSteps > 0, Math.Abs(game0.iStandard) == 2);
-          fShootChance1 = game1.ai.getChanceShoot(game1.ball.plAtBall, game1.data.team[1].tc, game1.ball.nPassSteps > 0, Math.Abs(game1.iStandard) == 2);
+          fShootChance0 = game0.ai.getChanceShoot(game0.ball.plAtBall, game0.data.team[0].ltTactic[0], game0.ball.nPassSteps > 0, Math.Abs(game0.iStandard) == 2);
+          fShootChance1 = game1.ai.getChanceShoot(game1.ball.plAtBall, game1.data.team[1].ltTactic[0], game1.ball.nPassSteps > 0, Math.Abs(game1.iStandard) == 2);
         }
         Assert.AreEqual(fShootChance0, fShootChance1, 0.0001);
 #endif
@@ -743,17 +743,17 @@ namespace CornerkickUnitTest
 #if !_AI2
         int iDummy1 = 0;
         int iDummy2 = 0;
-        double fPassChance0 = game0.ai.getChancePass(game0.ball.plAtBall, iDistClosestOpp0, game0.data.team[0].tc.fPassFreq, out plDummy, out iDummy1, out iDummy2, 0);
-        double fPassChance1 = game1.ai.getChancePass(game1.ball.plAtBall, iDistClosestOpp1, game1.data.team[1].tc.fPassFreq, out plDummy, out iDummy1, out iDummy2, 0);
+        double fPassChance0 = game0.ai.getChancePass(game0.ball.plAtBall, iDistClosestOpp0, game0.data.team[0].ltTactic[0].fPassFreq, out plDummy, out iDummy1, out iDummy2, 0);
+        double fPassChance1 = game1.ai.getChancePass(game1.ball.plAtBall, iDistClosestOpp1, game1.data.team[1].ltTactic[0].fPassFreq, out plDummy, out iDummy1, out iDummy2, 0);
         if (fPassChance0 != fPassChance1) {
-          fPassChance0 = game0.ai.getChancePass(game0.ball.plAtBall, iDistClosestOpp0, game0.data.team[0].tc.fPassFreq, out plDummy, out iDummy1, out iDummy2, 0);
-          fPassChance1 = game1.ai.getChancePass(game1.ball.plAtBall, iDistClosestOpp1, game1.data.team[1].tc.fPassFreq, out plDummy, out iDummy1, out iDummy2, 0);
+          fPassChance0 = game0.ai.getChancePass(game0.ball.plAtBall, iDistClosestOpp0, game0.data.team[0].ltTactic[0].fPassFreq, out plDummy, out iDummy1, out iDummy2, 0);
+          fPassChance1 = game1.ai.getChancePass(game1.ball.plAtBall, iDistClosestOpp1, game1.data.team[1].ltTactic[0].fPassFreq, out plDummy, out iDummy1, out iDummy2, 0);
 
-          fPassChance0 = game0.ai.getChancePass(game0.ball.plAtBall, iDistClosestOpp0, game0.data.team[0].tc.fPassFreq, out plDummy, out iDummy1, out iDummy2, 0);
-          fPassChance1 = game1.ai.getChancePass(game1.ball.plAtBall, iDistClosestOpp1, game1.data.team[1].tc.fPassFreq, out plDummy, out iDummy1, out iDummy2, 0);
+          fPassChance0 = game0.ai.getChancePass(game0.ball.plAtBall, iDistClosestOpp0, game0.data.team[0].ltTactic[0].fPassFreq, out plDummy, out iDummy1, out iDummy2, 0);
+          fPassChance1 = game1.ai.getChancePass(game1.ball.plAtBall, iDistClosestOpp1, game1.data.team[1].ltTactic[0].fPassFreq, out plDummy, out iDummy1, out iDummy2, 0);
 
-          fPassChance0 = game0.ai.getChancePass(game0.ball.plAtBall, iDistClosestOpp0, game0.data.team[0].tc.fPassFreq, out plDummy, out iDummy1, out iDummy2, 0);
-          fPassChance1 = game1.ai.getChancePass(game1.ball.plAtBall, iDistClosestOpp1, game1.data.team[1].tc.fPassFreq, out plDummy, out iDummy1, out iDummy2, 0);
+          fPassChance0 = game0.ai.getChancePass(game0.ball.plAtBall, iDistClosestOpp0, game0.data.team[0].ltTactic[0].fPassFreq, out plDummy, out iDummy1, out iDummy2, 0);
+          fPassChance1 = game1.ai.getChancePass(game1.ball.plAtBall, iDistClosestOpp1, game1.data.team[1].ltTactic[0].fPassFreq, out plDummy, out iDummy1, out iDummy2, 0);
         }
         //Assert.AreEqual(fPassChance0, fPassChance1, 0.0001);
 
@@ -958,6 +958,7 @@ namespace CornerkickUnitTest
         clb.sName = "Team" + (i + 1).ToString();
         clb.iLand = iLand;
         clb.iDivision = 0;
+        clb.ltTactic[0].formation = mn.ltFormationen[8];
 
         addPlayerToClub(mn, ref clb);
 
@@ -997,10 +998,10 @@ namespace CornerkickUnitTest
         clbNat.iId = mn.ltClubs.Count;
         clbNat.sName = mn.sLand[iN];
         clbNat.iLand = iN;
-        clbNat.formation = mn.ltFormationen[8];
+        clbNat.ltTactic[0].formation = mn.ltFormationen[8];
 
-        List<CornerkickGame.Player> ltPlayerBest = mn.getBestPlayer(iN, clbNat.formation);
-        while ((ltPlayerBest = mn.getBestPlayer(iN, clbNat.formation)).Count < 22) mn.plr.newPlayer(iNat: iN);
+        List<CornerkickGame.Player> ltPlayerBest = mn.getBestPlayer(iN, clbNat.ltTactic[0].formation);
+        while ((ltPlayerBest = mn.getBestPlayer(iN, clbNat.ltTactic[0].formation)).Count < 22) mn.plr.newPlayer(iNat: iN);
         //Assert.AreEqual(true, ltPlayerBest.Count >= 11);
         //clbNat.ltPlayer = ltPlayerBest;
 
