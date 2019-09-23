@@ -695,7 +695,7 @@ namespace CornerkickUnitTest
       bool bOk = mn.doGame(gameTest, bAlwaysWriteToDisk: true, bWaitUntilGameIsSaved: true);
       Assert.AreEqual(true, bOk);
 
-      DirectoryInfo diGames = new DirectoryInfo(@Path.Combine(mn.sHomeDir, "save", "games")); //Assuming Test is your Folder
+      DirectoryInfo diGames = new DirectoryInfo(@Path.Combine(mn.sHomeDir, "save", "games"));
       FileInfo[] fiGames = diGames.GetFiles("*.ckgx");
       while (fiGames.Length == 0) {
         fiGames = diGames.GetFiles("*.ckgx");
@@ -876,6 +876,8 @@ namespace CornerkickUnitTest
 
         CornerkickManager.Club clbH = new CornerkickManager.Club();
         CornerkickManager.Club clbA = new CornerkickManager.Club();
+        clbH.ltTactic[0].formation = mn.ltFormationen[8];
+        clbA.ltTactic[0].formation = mn.ltFormationen[8];
         foreach (CornerkickGame.Player pl in gameTest.player[0]) {
           mn.ltPlayer.Add(pl);
           clbH.ltPlayer.Add(pl);
