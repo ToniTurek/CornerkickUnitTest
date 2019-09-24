@@ -186,6 +186,7 @@ namespace CornerkickUnitTest
         Assert.AreEqual(0.30820635611105718, fPassChance[6], 0.00001);
         */
 
+#if !_AI2
         Assert.AreEqual(9, ltReceiver .Count);
         Assert.AreEqual(9, fPassChance.Count);
         Assert.AreEqual(0.014182744704188292, fPassChance[0], 0.00001);
@@ -197,7 +198,8 @@ namespace CornerkickUnitTest
         Assert.AreEqual(0.178425798892152270, fPassChance[6], 0.00001);
         Assert.AreEqual(0.226310980638191000, fPassChance[7], 0.00001);
         Assert.AreEqual(0.240872005370227930, fPassChance[8], 0.00001);
-        
+#endif
+
         //CornerkickGame.Player plRec = gameTest.ai.getReceiver(plAtBall);
       }
     }
@@ -445,6 +447,10 @@ namespace CornerkickUnitTest
 
       CornerkickManager.Main mn = new CornerkickManager.Main();
 
+      DateTime dtStart = DateTime.Now;
+      Stopwatch sw = new Stopwatch();
+      sw.Start();
+
 #if _DoE
       float fWf1 = 0.5f;
       const float fWfStep = 0.2f;
@@ -601,6 +607,9 @@ namespace CornerkickUnitTest
             else if (gameTest.data.team[0].iGoals < gameTest.data.team[1].iGoals) iL++;
             else                                                                  iD++;
           } // for each game
+          
+          // Stop stopwatch
+          sw.Stop();
 
           fChanceGoalH /= nGames;
           fChanceGoalA /= nGames;
@@ -612,50 +621,32 @@ namespace CornerkickUnitTest
           Debug.WriteLine("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
           Debug.WriteLine("OOO        Statistics        OOO");
           Debug.WriteLine("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
-          Debug.WriteLine("                Ave.  /  H/A");
-          Debug.WriteLine("        goals: " + ((iGH          + iGA)          / (2.0 * nGames)).ToString("0.0000") + " / " + (iGH          / (double)iGA)         .ToString("0.0000"));
-          Debug.WriteLine("  chance goal: " + ((fChanceGoalH + fChanceGoalA) /  2.0          ).ToString("0.0000") + " / " + (fChanceGoalH /         fChanceGoalA).ToString("0.0000"));
-          Debug.WriteLine("       shoots: " + ((iShootsH     + iShootsA)     / (2.0 * nGames)).ToString("0.0000") + " / " + (iShootsH     / (double)iShootsA)    .ToString("0.0000"));
-          Debug.WriteLine("  shoot dist.: " + ((fShootDistH  + fShootDistA)  /  2.0          ).ToString("0.000")  + " / " + (fShootDistH  /         fShootDistA) .ToString("0.0000"));
-          Debug.WriteLine("        duels: " + ((iDuelH       + iDuelA)       / (2.0 * nGames)).ToString("0.000")  + " / " + (iDuelH       / (double)iDuelA)      .ToString("0.0000"));
-          Debug.WriteLine("        steps: " + ((iStepsH      + iStepsA)      / (2.0 * nGames)).ToString("0 ")     + " / " + (iStepsH      / (double)iStepsA)     .ToString("0.0000"));
-          Debug.WriteLine("   possession: " + ((iPossH       + iPossA)       / (2.0 * nGames)).ToString("0.0")    + " / " + (iPossH       / (double)iPossA)      .ToString("0.0000"));
-          Debug.WriteLine("       passes: " + ((iPassH       + iPassA)       / (2.0 * nGames)).ToString("0.00")   + " / " + (iPassH       / (double)iPassA)      .ToString("0.0000"));
-          Debug.WriteLine("     offsites: " + ((iOffsiteH    + iOffsiteA)    / (2.0 * nGames)).ToString("0.0000") + " / " + (iOffsiteH    / (double)iOffsiteA)   .ToString("0.0000"));
+          
+          Trace.Listeners.Add(new TextWriterTraceListener(mn.sHomeDir + "/Test_Results.txt"));
+          Trace.AutoFlush = true;
+          Trace.Indent();
 
-          Debug.WriteLine("Total: " + iGH.ToString() + ":" + iGA.ToString());
-          Debug.WriteLine("Avrge: " + (iGH / (float)nGames).ToString("0.00") + ":" + (iGA / (float)nGames).ToString("0.00"));
-          Debug.WriteLine("Win Home/Draw/Away: " + iV.ToString() + "/" + iD.ToString() + "/" + iL.ToString());
+          Trace.WriteLine("Start date: " + dtStart + ". Performed games: " + nGames.ToString());
+          Trace.WriteLine("                Ave.  /  H/A");
+          Trace.WriteLine("        goals: " + ((iGH          + iGA)          / (2.0 * nGames)).ToString("0.0000") + " / " + (iGH          / (double)iGA)         .ToString("0.0000"));
+          Trace.WriteLine("  chance goal: " + ((fChanceGoalH + fChanceGoalA) /  2.0          ).ToString("0.0000") + " / " + (fChanceGoalH /         fChanceGoalA).ToString("0.0000"));
+          Trace.WriteLine("       shoots: " + ((iShootsH     + iShootsA)     / (2.0 * nGames)).ToString("0.0000") + " / " + (iShootsH     / (double)iShootsA)    .ToString("0.0000"));
+          Trace.WriteLine("  shoot dist.: " + ((fShootDistH  + fShootDistA)  /  2.0          ).ToString("0.000")  + " / " + (fShootDistH  /         fShootDistA) .ToString("0.0000"));
+          Trace.WriteLine("        duels: " + ((iDuelH       + iDuelA)       / (2.0 * nGames)).ToString("0.000")  + " / " + (iDuelH       / (double)iDuelA)      .ToString("0.0000"));
+          Trace.WriteLine("        steps: " + ((iStepsH      + iStepsA)      / (2.0 * nGames)).ToString("0 ")     + " / " + (iStepsH      / (double)iStepsA)     .ToString("0.0000"));
+          Trace.WriteLine("   possession: " + ((iPossH       + iPossA)       / (2.0 * nGames)).ToString("0.0")    + " / " + (iPossH       / (double)iPossA)      .ToString("0.0000"));
+          Trace.WriteLine("       passes: " + ((iPassH       + iPassA)       / (2.0 * nGames)).ToString("0.00")   + " / " + (iPassH       / (double)iPassA)      .ToString("0.0000"));
+          Trace.WriteLine("     offsites: " + ((iOffsiteH    + iOffsiteA)    / (2.0 * nGames)).ToString("0.0000") + " / " + (iOffsiteH    / (double)iOffsiteA)   .ToString("0.0000"));
+
+          Trace.WriteLine("Total: " + iGH.ToString() + ":" + iGA.ToString());
+          Trace.WriteLine("Avrge: " + (iGH / (float)nGames).ToString("0.00") + ":" + (iGA / (float)nGames).ToString("0.00"));
+          Trace.WriteLine("Win Home/Draw/Away: " + iV.ToString() + "/" + iD.ToString() + "/" + iL.ToString());
 #if _ML
           Debug.WriteLine("fWfPass: " + fWfPass.ToString("0.0000"));
 #endif
-
-          // Write results to file
-#if _DoE
-          swLog = new StreamWriter(mn.sHomeDir + "/Test_Results_DoE.txt", true);
-          swLog.WriteLine(fWf1.ToString("0.00") + " " + fWf2.ToString("0.00") + " " + fChanceGoalH.ToString("0.0000").PadLeft(9) + " " + fChanceGoalA.ToString("0.0000").PadRight(9) + " " + (fChanceGoalH / fChanceGoalA).ToString());
-#else
-          StreamWriter swLog = new StreamWriter(mn.sHomeDir + "/Test_Results.txt", true);
-          swLog.WriteLine("Start date: " + DateTime.Now + ". Performed games: " + nGames.ToString());
-          swLog.WriteLine("      goals: " + iGH         .ToString(        ).PadLeft(9) + " / " + iGA         .ToString(        ).PadRight(9) + ": " + (iGH          / (double)iGA)         .ToString());
-          swLog.WriteLine("chance goal: " + fChanceGoalH.ToString("0.0000").PadLeft(9) + " / " + fChanceGoalA.ToString("0.0000").PadRight(9) + ": " + (fChanceGoalH /         fChanceGoalA).ToString());
-          swLog.WriteLine("     shoots: " + iShootsH    .ToString(        ).PadLeft(9) + " / " + iShootsA    .ToString(        ).PadRight(9) + ": " + (iShootsH     / (double)iShootsA)    .ToString());
-          swLog.WriteLine("shoot dist.: " + fShootDistH .ToString("0.0000").PadLeft(9) + " / " + fShootDistA .ToString("0.0000").PadRight(9) + ": " + (fShootDistH  /         fShootDistA) .ToString());
-          swLog.WriteLine("      duels: " + iDuelH      .ToString(        ).PadLeft(9) + " / " + iDuelA      .ToString(        ).PadRight(9) + ": " + (iDuelH       / (double)iDuelA)      .ToString());
-          swLog.WriteLine("      steps: " + iStepsH     .ToString(        ).PadLeft(9) + " / " + iStepsA     .ToString(        ).PadRight(9) + ": " + (iStepsH      / (double)iStepsA)     .ToString());
-          swLog.WriteLine(" possession: " + iPossH      .ToString(        ).PadLeft(9) + " / " + iPossA      .ToString(        ).PadRight(9) + ": " + (iPossH       / (double)iPossA)      .ToString());
-          swLog.WriteLine("     passes: " + iPassH      .ToString(        ).PadLeft(9) + " / " + iPassA      .ToString(        ).PadRight(9) + ": " + (iStepsH      / (double)iStepsA)     .ToString());
-          swLog.WriteLine("   offsites: " + iOffsiteH   .ToString(        ).PadLeft(9) + " / " + iOffsiteA   .ToString(        ).PadRight(9) + ": " + (iOffsiteH    / (double)iOffsiteA)   .ToString());
-
-          swLog.WriteLine("Avrge goals: " + (iGH / (float)nGames).ToString("0.00") + ":" + (iGA / (float)nGames).ToString("0.00"));
-          swLog.WriteLine("Win Home/Draw/Away: " + iV.ToString() + "/" + iD.ToString() + "/" + iL.ToString());
-#if _ML
-          swLog.WriteLine("fWfPass: " + fWfPass.ToString("0.0000"));
-#endif
-          swLog.WriteLine("Finish date: " + DateTime.Now);
-          swLog.WriteLine();
-#endif
-          swLog.Close();
+          Trace.WriteLine("Finish date: " + DateTime.Now + ". Elapsed time: " + (sw.ElapsedMilliseconds / 1000.0).ToString("0.000 s"));
+          Trace.Unindent();
+          Trace.Flush();
 
 #if !_DoE
           if (iGA          > 0) Assert.AreEqual(1.0, iGH          / (double)iGA,          0.2);
