@@ -816,8 +816,8 @@ namespace CornerkickUnitTest
       for (byte iP = 0; iP < game.data.nPlStart; iP++) {
         // Position
         Point ptPosH = game0.player[0][iP].ptPos;
-        game1.player[0][iP].ptPos = game0.tl.transformPosition(game0.player[1][iP].ptPos);
-        game1.player[1][iP].ptPos = game0.tl.transformPosition(ptPosH);
+        game1.player[0][iP].ptPos = CornerkickGame.Tool.transformPosition(game0.player[1][iP].ptPos, game0.ptPitch.X);
+        game1.player[1][iP].ptPos = CornerkickGame.Tool.transformPosition(ptPosH,                    game0.ptPitch.X);
 
         // Look at
         int iLookAt0 = game0.player[0][iP].iLookAt - 3;
@@ -845,8 +845,8 @@ namespace CornerkickUnitTest
       }
 
       // Ball
-      game1.ball.ptPos     = game0.tl.transformPosition(game0.ball.ptPos);
-      game1.ball.ptPosLast = game0.tl.transformPosition(game0.ball.ptPosLast);
+      game1.ball.ptPos     = CornerkickGame.Tool.transformPosition(game0.ball.ptPos,     game0.ptPitch.X);
+      game1.ball.ptPosLast = CornerkickGame.Tool.transformPosition(game0.ball.ptPosLast, game0.ptPitch.X);
       if (game0.ball.plAtBall     != null) game1.ball.plAtBall     = game1.player[1 - game0.ball.plAtBall    .iHA][game0.ball.plAtBall    .iIndex];
       if (game0.ball.plAtBallLast != null) game1.ball.plAtBallLast = game1.player[1 - game0.ball.plAtBallLast.iHA][game0.ball.plAtBallLast.iIndex];
       game1.ball.nPassSteps = game0.ball.nPassSteps;
