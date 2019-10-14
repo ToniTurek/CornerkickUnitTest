@@ -1368,5 +1368,22 @@ namespace CornerkickUnitTest
       }
     }
 
+    [TestMethod]
+    public void TestPlayerValue()
+    {
+      CornerkickManager.Main mn  = new CornerkickManager.Main();
+
+      CornerkickGame.Player pl = new CornerkickGame.Player(7);
+
+      // Player value should be 2.29 mio €
+      pl.fExperiencePos[10] = 1.0f;
+      Assert.AreEqual(2290, pl.getValue(25f, 1000),  0.00001);
+
+      // Player value should be 2.29 mio €
+      pl.fExperiencePos[ 8] = 0.5f;
+      pl.fExperiencePos[ 9] = 0.5f;
+      Assert.AreEqual(3022, pl.getValue(25f, 1000),  0.00001);
+    }
+
   }
 }
