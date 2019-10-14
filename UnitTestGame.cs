@@ -1088,7 +1088,6 @@ namespace CornerkickUnitTest
 
       // League
       List<CornerkickManager.Tool.TableItem> table = mn.tl.getLeagueTable(league);
-
       Assert.AreEqual(true, table.Count == nTeams);
       Assert.AreEqual(true, table[0].iGoals > 0);
       Assert.AreEqual(true, table[0].iGUV[0] > table[0].iGUV[2]);
@@ -1101,6 +1100,9 @@ namespace CornerkickUnitTest
 
       Assert.AreEqual(true, cupWc.ltMatchdays.Count > 4);
       Assert.AreEqual(true, cupWc.ltMatchdays[4].ltGameData.Count == 1);
+      Assert.AreEqual(true, cupWc.ltMatchdays[4].ltGameData[0].team[0].iGoals >= 0);
+      Assert.AreEqual(true, cupWc.ltMatchdays[4].ltGameData[0].team[1].iGoals >= 0);
+      Assert.AreEqual(true, cupWc.ltMatchdays[4].ltGameData[0].team[0].iGoals != cupWc.ltMatchdays[4].ltGameData[0].team[1].iGoals);
 
       // save/load
 #if _ANSYS
