@@ -638,15 +638,16 @@ namespace CornerkickUnitTest
           Trace.WriteLine("       passes: " + ((iPassH       + iPassA)       / (2.0 * nGames)).ToString("0.00")   + " / " + (iPassH       / (double)iPassA)      .ToString("0.0000"));
           Trace.WriteLine("     offsites: " + ((iOffsiteH    + iOffsiteA)    / (2.0 * nGames)).ToString("0.0000") + " / " + (iOffsiteH    / (double)iOffsiteA)   .ToString("0.0000"));
 
-          Trace.WriteLine("Total: " + iGH.ToString() + ":" + iGA.ToString());
-          Trace.WriteLine("Avrge: " + (iGH / (float)nGames).ToString("0.00") + ":" + (iGA / (float)nGames).ToString("0.00"));
+          Trace.WriteLine("Total Goals: " + iGH.ToString() + ":" + iGA.ToString());
           Trace.WriteLine("Win Home/Draw/Away: " + iV.ToString() + "/" + iD.ToString() + "/" + iL.ToString());
 #if _ML
           Debug.WriteLine("fWfPass: " + fWfPass.ToString("0.0000"));
 #endif
           Trace.WriteLine("Finish date: " + DateTime.Now + ". Elapsed time: " + (sw.ElapsedMilliseconds / 1000.0).ToString("0.000 s"));
+          Trace.WriteLine("");
           Trace.Unindent();
           Trace.Flush();
+          Trace.Listeners.Clear();
 
 #if !_DoE
           if (iGA          > 0) Assert.AreEqual(1.0, iGH          / (double)iGA,          0.2);
