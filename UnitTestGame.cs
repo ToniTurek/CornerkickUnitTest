@@ -345,6 +345,53 @@ namespace CornerkickUnitTest
     }
 
     [TestMethod]
+    public void TestChancePassFromSide()
+    {
+      CornerkickGame.Game gameTest = game.tl.getDefaultGame();
+
+      gameTest.next();
+      while (gameTest.iStandardCounter > 0) gameTest.next();
+
+      for (byte jHA = 0; jHA < 2; jHA++) {
+        for (byte iPl = 0; iPl < gameTest.player[jHA].Length; iPl++) {
+          CornerkickGame.Player pl = gameTest.player[jHA][iPl];
+          if (gameTest.tl.checkPlayerIsKeeper(pl)) continue;
+
+          pl.ptPos.X = Math.Min(pl.ptPos.X, gameTest.ptPitch.X / 2); // Place player at middle line
+        }
+      }
+
+      CornerkickGame.Player plDef1 = gameTest.player[1][ 1];
+      CornerkickGame.Player plDef2 = gameTest.player[1][ 2];
+      CornerkickGame.Player plOff1 = gameTest.player[0][ 8];
+      CornerkickGame.Player plOff2 = gameTest.player[0][ 9];
+      CornerkickGame.Player plOff3 = gameTest.player[0][10];
+      CornerkickGame.Player plReceiver = null;
+
+      plOff1.iLookAt = 3;
+      plOff2.iLookAt = 3;
+      plOff3.iLookAt = 3;
+
+      plDef1.ptPos.Y = 0;
+      plDef1.iLookAt = 0;
+
+      float fRelDistX = 0.95f;
+
+      plOff1.ptPos = new Point((int)(gameTest.ptPitch.X * fRelDistX), (int)(gameTest.ptPitch.Y * +0.9));
+      plOff2.ptPos = new Point((int)(gameTest.ptPitch.X * fRelDistX), (int)(gameTest.ptPitch.Y * +0.1));
+      plOff3.ptPos = new Point((int)(gameTest.ptPitch.X * fRelDistX), (int)(gameTest.ptPitch.Y * -0.1));
+
+      plDef1.ptPos = new Point((int)(gameTest.ptPitch.X * fRelDistX), (int)(gameTest.ptPitch.Y * +0.85));
+      plDef2.ptPos = new Point((int)(gameTest.ptPitch.X * fRelDistX), (int)(gameTest.ptPitch.Y *  0.00));
+
+      gameTest.ball.ptPos = plOff1.ptPos;
+      gameTest.ball.plAtBall = plOff1;
+
+      float[] fPlAction = gameTest.ai.getPlayerAction(plOff1, out plReceiver, false, 10);
+      Assert.AreEqual(0.7, fPlAction[1], 0.02);
+    }
+
+    [TestMethod]
     public void TestPhi()
     {
       int iX0 = game.ptPitch.X / 2;
