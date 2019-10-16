@@ -645,6 +645,10 @@ namespace CornerkickUnitTest
                 ptBall = gameTest.ball.ptPos;
               }
 
+              // Test player positions
+              checkPlayerOnSamePosition(gameTest.player);
+
+              // Test player action array
               if (gameTest.ball.plAtBall != null) {
                 float[] fAction = gameTest.ai.getPlayerAction(gameTest.ball.plAtBall, false, 0);
                 Assert.AreEqual(1.0, getPlayerActionTotal(fAction), 0.00001);
@@ -683,7 +687,7 @@ namespace CornerkickUnitTest
 #if !_DoE
               if ((int)gameTest.tsMinute.TotalMinutes % 10 == 0 && gameTest.tsMinute.Seconds == 0) testHA(gameTest);
 #endif
-            }
+            } // gameTest.next()
 
 #if _ML
             fWfPass  = gameTest.ai.ml.fWfPass;
@@ -826,6 +830,20 @@ namespace CornerkickUnitTest
         fWf1 += fWfStep;
       }
 #endif
+    }
+
+    private void checkPlayerOnSamePosition(CornerkickGame.Player[][] player)
+    {
+      for (byte iHA = 0; iHA < 2; iHA++) {
+        foreach (CornerkickGame.Player plr in player[iHA]) {
+          for (byte jHA = 0; jHA < 2; jHA++) {
+            foreach (CornerkickGame.Player plr2 in player[jHA]) {
+              if (plr == plr2) continue;
+              Assert.AreEqual(false, plr.ptPos == plr2.ptPos);
+            }
+          }
+        }
+      }
     }
 
     private void addShootToRange(float fShootDist, ref int[] iShootRange, byte iShootResult, ref int[] iShootRangeGoal)
