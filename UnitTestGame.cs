@@ -1,5 +1,5 @@
 ﻿//#define _ML
-//#define _AI2
+#define _AI2
 //#define _DoE
 
 using System;
@@ -388,7 +388,29 @@ namespace CornerkickUnitTest
       gameTest.ball.plAtBall = plOff1;
 
       float[] fPlAction = gameTest.ai.getPlayerAction(plOff1, out plReceiver, false, 10);
+#if _AI2
+      Assert.AreEqual(0.9473, fPlAction[1], 0.02);
+#else
       Assert.AreEqual(0.7, fPlAction[1], 0.02);
+#endif
+    }
+
+    [TestMethod]
+    public void TestChanceKeeperSave()
+    {
+      CornerkickGame.Game gameTest = game.tl.getDefaultGame();
+
+      gameTest.next();
+      while (gameTest.iStandardCounter > 0) gameTest.next();
+
+      CornerkickGame.Player plShooter = gameTest.player[1][10];
+
+      // Test specific positions
+      plShooter.ptPos = new Point(37,  0);
+      Assert.AreEqual(0.915989875793457, gameTest.ai.getChanceShootKeeperSave(plShooter), 0.0001);
+
+      plShooter.ptPos = new Point(81,  0);
+      Assert.AreEqual(1.0, gameTest.ai.getChanceShootKeeperSave(plShooter), 0.0001);
     }
 
     [TestMethod]
@@ -397,12 +419,46 @@ namespace CornerkickUnitTest
       int iX0 = game.ptPitch.X / 2;
       int iY0 = 0;
       Point pt0 = new Point(iX0, iY0);
-      Assert.AreEqual(  0.0, game.tl.getPhi(pt0, new Point(pt0.X - 1, pt0.Y    )), 0.001); // A
-      Assert.AreEqual( 60.0, game.tl.getPhi(pt0, new Point(pt0.X - 1, pt0.Y - 1)), 0.001); // W
-      Assert.AreEqual(120.0, game.tl.getPhi(pt0, new Point(pt0.X + 1, pt0.Y - 1)), 0.001); // E
-      Assert.AreEqual(180.0, game.tl.getPhi(pt0, new Point(pt0.X + 1, pt0.Y    )), 0.001); // D
-      Assert.AreEqual(240.0, game.tl.getPhi(pt0, new Point(pt0.X + 1, pt0.Y + 1)), 0.001); // X
-      Assert.AreEqual(300.0, game.tl.getPhi(pt0, new Point(pt0.X - 1, pt0.Y + 1)), 0.001); // Y
+      Assert.AreEqual(  0.0, CornerkickGame.Tool.getPhi(pt0, new Point(pt0.X - 1, pt0.Y    ), game.fConvertDist2Meter), 0.0001); // A
+      Assert.AreEqual( 60.0, CornerkickGame.Tool.getPhi(pt0, new Point(pt0.X - 1, pt0.Y - 1), game.fConvertDist2Meter), 0.0001); // W
+      Assert.AreEqual(120.0, CornerkickGame.Tool.getPhi(pt0, new Point(pt0.X + 1, pt0.Y - 1), game.fConvertDist2Meter), 0.0001); // E
+      Assert.AreEqual(180.0, CornerkickGame.Tool.getPhi(pt0, new Point(pt0.X + 1, pt0.Y    ), game.fConvertDist2Meter), 0.0001); // D
+      Assert.AreEqual(240.0, CornerkickGame.Tool.getPhi(pt0, new Point(pt0.X + 1, pt0.Y + 1), game.fConvertDist2Meter), 0.0001); // X
+      Assert.AreEqual(300.0, CornerkickGame.Tool.getPhi(pt0, new Point(pt0.X - 1, pt0.Y + 1), game.fConvertDist2Meter), 0.0001); // Y
+    }
+
+    [TestMethod]
+    public void TestAngleKeeperShooter()
+    {
+      Random rnd = new Random();
+
+      CornerkickGame.Player plKeeper  = new CornerkickGame.Player(6);
+      CornerkickGame.Player plShooter = new CornerkickGame.Player(6);
+
+      // Test specific positions
+      plKeeper .ptPos = new Point( 1,  0);
+      plShooter.ptPos = new Point(25,  0);
+      Assert.AreEqual(1.0, CornerkickGame.Game.calcAngleKeeperShooter(plKeeper, plShooter, game.ptPitch.X, game.fConvertDist2Meter), 0.0001);
+
+      plKeeper .ptPos = new Point(12,  +5);
+      plShooter.ptPos = new Point(25, +10);
+      Assert.AreEqual(1.0, CornerkickGame.Game.calcAngleKeeperShooter(plKeeper, plShooter, game.ptPitch.X, game.fConvertDist2Meter), 0.0001);
+
+      plKeeper .ptPos = new Point(12,  -5);
+      plShooter.ptPos = new Point(25, +10);
+      Assert.AreEqual(0.078268, CornerkickGame.Game.calcAngleKeeperShooter(plKeeper, plShooter, game.ptPitch.X, game.fConvertDist2Meter), 0.0001);
+
+      // Test random positions
+      for (int i = 0; i < 1000; i++) {
+        plKeeper .ptPos.X = rnd.Next(game.ptPitch.X);
+        plKeeper .ptPos.Y = rnd.Next(-game.ptPitch.Y, game.ptPitch.Y);
+        plShooter.ptPos.X = rnd.Next(game.ptPitch.X);
+        plShooter.ptPos.Y = rnd.Next(-game.ptPitch.Y, game.ptPitch.Y);
+        if (CornerkickGame.Game.calcAngleKeeperShooter(plKeeper, plShooter, game.ptPitch.X, game.fConvertDist2Meter) > 1.0) {
+          Debug.WriteLine(CornerkickGame.Game.calcAngleKeeperShooter(plKeeper, plShooter, game.ptPitch.X, game.fConvertDist2Meter));
+        }
+        Assert.AreEqual(true, CornerkickGame.Game.calcAngleKeeperShooter(plKeeper, plShooter, game.ptPitch.X, game.fConvertDist2Meter) <= 1.0);
+      }
     }
 
     [TestMethod]
@@ -520,6 +576,8 @@ namespace CornerkickUnitTest
           double fChanceGoalA = 0.0;
           double fShootDistH = 0.0;
           double fShootDistA = 0.0;
+          int[] iShootRange      = new int[8];
+          int[] iShootRangeGoals = new int[8];
           int iV = 0;
           int iD = 0;
           int iL = 0;
@@ -587,9 +645,35 @@ namespace CornerkickUnitTest
                 ptBall = gameTest.ball.ptPos;
               }
 
+              if (gameTest.ball.plAtBall != null) {
+                float[] fAction = gameTest.ai.getPlayerAction(gameTest.ball.plAtBall, false, 0);
+                Assert.AreEqual(1.0, getPlayerActionTotal(fAction), 0.00001);
+              }
+
+              CornerkickGame.Game.State stateLast1 = gameTest.data.ltState[gameTest.data.ltState.Count - 2];
+              CornerkickGame.Game.State stateLast  = gameTest.data.ltState[gameTest.data.ltState.Count - 1];
+              CornerkickGame.Game.Shoot shoot = stateLast.shoot;
+              if (shoot.plShoot != null) {
+                float fDistTmp = CornerkickGame.Tool.getDistanceToGoal(shoot.plShoot, gameTest.ptPitch.X, gameTest.fConvertDist2Meter)[0];
+                if (fDistTmp > 50) {
+                  Debug.Write(fDistTmp.ToString("0.0m") + ", ");
+                  Debug.Write(gameTest.ai.getChanceShootGoal(shoot.plShoot));
+                  Debug.WriteLine("");
+                }
+              }
+
               // Test goal if goals difer from last step
               if (iGoalH != gameTest.data.team[0].iGoals ||
                   iGoalA != gameTest.data.team[1].iGoals) {
+                if (shoot.plShoot != null && shoot.iResult == 1) {
+                  float fDistTmp = CornerkickGame.Tool.getDistanceToGoal(shoot.plShoot, gameTest.ptPitch.X, gameTest.fConvertDist2Meter)[0];
+                  if (fDistTmp > 35) {
+                    Debug.Write(fDistTmp.ToString("0.0m") + ", ");
+                    Debug.Write(gameTest.ai.getChanceShootGoal(shoot.plShoot));
+                    Debug.WriteLine("");
+                  }
+                }
+
                 testGoal(gameTest, iGoalH != gameTest.data.team[0].iGoals, iGoalH, iGoalA);
               }
 
@@ -622,15 +706,21 @@ namespace CornerkickUnitTest
             List<CornerkickGame.Game.Shoot> ltShootsH = mn.ui.getShoots(gameTest.data.ltState, 0);
             iShootsH += ltShootsH.Count;
             foreach (CornerkickGame.Game.Shoot shoot in ltShootsH) {
+              float fShootDistTmp = CornerkickGame.Tool.getDistanceToGoal(shoot.plShoot, gameTest.ptPitch.X, gameTest.fConvertDist2Meter)[0];
               fChanceGoalH += CornerkickGame.AI.getChanceShootGoal(shoot);
-              fShootDistH  += CornerkickGame.Tool.getDistanceToGoal(shoot.plShoot, gameTest.ptPitch.X, gameTest.fConvertDist2Meter)[0];
+              fShootDistH  += fShootDistTmp;
+
+              addShootToRange(fShootDistTmp, ref iShootRange, shoot.iResult, ref iShootRangeGoals);
             }
 
             List<CornerkickGame.Game.Shoot> ltShootsA = mn.ui.getShoots(gameTest.data.ltState, 1);
             iShootsA += ltShootsA.Count;
             foreach (CornerkickGame.Game.Shoot shoot in ltShootsA) {
+              float fShootDistTmp = CornerkickGame.Tool.getDistanceToGoal(shoot.plShoot, gameTest.ptPitch.X, gameTest.fConvertDist2Meter)[0];
               fChanceGoalA += CornerkickGame.AI.getChanceShootGoal(shoot);
-              fShootDistA  += CornerkickGame.Tool.getDistanceToGoal(shoot.plShoot, gameTest.ptPitch.X, gameTest.fConvertDist2Meter)[0];
+              fShootDistA  += fShootDistTmp;
+
+              addShootToRange(fShootDistTmp, ref iShootRange, shoot.iResult, ref iShootRangeGoals);
             }
 
             iDuelH += (uint)mn.ui.getDuels(gameTest.data.ltState, 0).Count;
@@ -673,7 +763,11 @@ namespace CornerkickUnitTest
           Trace.AutoFlush = true;
           Trace.Indent();
 
+#if _AI2
+          Trace.WriteLine("Start date: " + dtStart + ". Performed games: " + nGames.ToString() + " (AI_v2)");
+#else
           Trace.WriteLine("Start date: " + dtStart + ". Performed games: " + nGames.ToString());
+#endif
           Trace.WriteLine("                Ave.  /  H/A");
           Trace.WriteLine("        goals: " + ((iGH          + iGA)          / (2.0 * nGames)).ToString("0.0000") + " / " + (iGH          / (double)iGA)         .ToString("0.0000"));
           Trace.WriteLine("  chance goal: " + ((fChanceGoalH + fChanceGoalA) /  2.0          ).ToString("0.0000") + " / " + (fChanceGoalH /         fChanceGoalA).ToString("0.0000"));
@@ -685,12 +779,30 @@ namespace CornerkickUnitTest
           Trace.WriteLine("       passes: " + ((iPassH       + iPassA)       / (2.0 * nGames)).ToString("0.00")   + " / " + (iPassH       / (double)iPassA)      .ToString("0.0000"));
           Trace.WriteLine("     offsites: " + ((iOffsiteH    + iOffsiteA)    / (2.0 * nGames)).ToString("0.0000") + " / " + (iOffsiteH    / (double)iOffsiteA)   .ToString("0.0000"));
 
+          Trace.WriteLine(" +--------+--------+--------+--------+--------+--------+--------+--------+");
+          Trace.WriteLine(" |   <5m  |  <10m  |  <15m  |  <20m  |  <25m  |  <30m  |  <35m  |  >35m  |");
+          Trace.WriteLine(" +--------+--------+--------+--------+--------+--------+--------+--------+");
+          string sShootRange = " | ";
+          for (int iSht = 0; iSht < iShootRange.Length; iSht++) {
+            sShootRange += (iShootRange[iSht] / (double)(iShootsH + iShootsA)).ToString("00.00%") + " | ";
+          }
+          Trace.WriteLine(sShootRange);
+          Trace.WriteLine(" +--------+--------+--------+--------+--------+--------+--------+--------+");
+
+          string sShootRangeG = " | ";
+          for (int iSht = 0; iSht < iShootRangeGoals.Length; iSht++) {
+            sShootRangeG += (iShootRangeGoals[iSht] / (double)(iGH + iGA)).ToString("00.00%") + " | ";
+          }
+          Trace.WriteLine(sShootRangeG);
+          Trace.WriteLine(" +--------+--------+--------+--------+--------+--------+--------+--------+");
+          
           Trace.WriteLine("Total Goals: " + iGH.ToString() + ":" + iGA.ToString());
           Trace.WriteLine("Win Home/Draw/Away: " + iV.ToString() + "/" + iD.ToString() + "/" + iL.ToString());
 #if _ML
           Debug.WriteLine("fWfPass: " + fWfPass.ToString("0.0000"));
 #endif
-          Trace.WriteLine("Finish date: " + DateTime.Now + ". Elapsed time: " + (sw.ElapsedMilliseconds / 1000.0).ToString("0.000 s"));
+          int iElapsedMin = (int)(sw.ElapsedMilliseconds / 60000.0);
+          Trace.WriteLine("Finish date: " + DateTime.Now + ". Elapsed time: " + iElapsedMin.ToString("0m") + ", " + ((sw.ElapsedMilliseconds / 1000.0) - (iElapsedMin * 60)).ToString("00s"));
           Trace.WriteLine("");
           Trace.Unindent();
           Trace.Flush();
@@ -714,6 +826,35 @@ namespace CornerkickUnitTest
         fWf1 += fWfStep;
       }
 #endif
+    }
+
+    private void addShootToRange(float fShootDist, ref int[] iShootRange, byte iShootResult, ref int[] iShootRangeGoal)
+    {
+      int iIx = Math.Min((int)(fShootDist / 5f), iShootRange.Length - 1);
+      iShootRange[iIx]++;
+      if (iShootResult == 1) iShootRangeGoal[iIx]++;
+    }
+
+    [TestMethod]
+    public void TestIO()
+    {
+      CornerkickManager.Main mng = new CornerkickManager.Main();
+      mng.sHomeDir = Path.Combine(mng.sHomeDir, "io_test");
+      string sLoadFile = Path.Combine(mng.sHomeDir, "test");
+#if _ANSYS
+      if (Directory.Exists(sLoadFile)) {
+#else
+      if (File.Exists(sLoadFile)) {
+#endif
+        mng.io.load(sLoadFile);
+
+        // Perform next step until end of season
+        while (mng.next(true) < 99) {
+          Debug.WriteLine(mng.dtDatum.ToString());
+        }
+
+        testIO(mng);
+      }
     }
 
     [TestMethod]
@@ -747,6 +888,14 @@ namespace CornerkickUnitTest
 
         Directory.Delete(mn.sHomeDir, true);
       }      
+    }
+
+    private float getPlayerActionTotal(float[] fAction)
+    {
+      float fTotal = 0f;
+      foreach (float f in fAction) fTotal += f;
+
+      return fTotal;
     }
 
     private void testHA(CornerkickGame.Game game0)
@@ -836,8 +985,8 @@ namespace CornerkickUnitTest
         }
 
         // Player action
-        float[] fAction0 = game0.ai.getPlayerAction(game0.ball.plAtBall, out plDummy, false, 0);
-        float[] fAction1 = game1.ai.getPlayerAction(game1.ball.plAtBall, out plDummy, false, 0);
+        float[] fAction0 = game0.ai.getPlayerAction(game0.ball.plAtBall, false, 0);
+        float[] fAction1 = game1.ai.getPlayerAction(game1.ball.plAtBall, false, 0);
         for (byte iA = 0; iA < fAction0.Length; iA++) {
           //Assert.AreEqual(fAction0[iA], fAction1[iA], 0.0001);
         }
@@ -1105,44 +1254,45 @@ namespace CornerkickUnitTest
       Assert.AreEqual(true, cupWc.ltMatchdays[4].ltGameData[0].team[0].iGoals != cupWc.ltMatchdays[4].ltGameData[0].team[1].iGoals);
 
       // save/load
-#if _ANSYS
-      string sSaveFile = "F:\\test\\unittest_save";
-#else
-      string sSaveFile = "unittest_save";
-#endif
+      testIO(mn);
+    }
 
-      DateTime dtCurrent = mn.dtDatum;
-      int iSeasonCountTmp = mn.iSeason;
-      float fInterest = mn.fz.fGlobalCreditInterest;
+    private void testIO(CornerkickManager.Main mng)
+    {
+      const string sSaveFile = "unittest_save";
+
+      DateTime dtCurrent = mng.dtDatum;
+      int iSeasonCountTmp = mng.iSeason;
+      float fInterest = mng.fz.fGlobalCreditInterest;
 
       List<string> ltUserId = new List<string>();
-      foreach (CornerkickManager.User user in mn.ltUser) {
+      foreach (CornerkickManager.User user in mng.ltUser) {
         ltUserId.Add(user.id);
       }
 
       List<string> ltPlayerName = new List<string>();
-      foreach (CornerkickGame.Player pl in mn.ltPlayer) {
+      foreach (CornerkickGame.Player pl in mng.ltPlayer) {
         ltPlayerName.Add(pl.sName);
       }
 
-      mn.io.save(sSaveFile);
-      mn.io.load(sSaveFile);
+      mng.io.save(sSaveFile);
+      mng.io.load(sSaveFile);
 
       // General
-      Assert.AreEqual(dtCurrent, mn.dtDatum);
-      Assert.AreEqual(iSeasonCountTmp, mn.iSeason);
-      Assert.AreEqual(fInterest, mn.fz.fGlobalCreditInterest);
+      Assert.AreEqual(dtCurrent, mng.dtDatum);
+      Assert.AreEqual(iSeasonCountTmp, mng.iSeason);
+      Assert.AreEqual(fInterest, mng.fz.fGlobalCreditInterest);
 
       // User id
-      Assert.AreEqual(ltUserId.Count, mn.ltUser.Count);
+      Assert.AreEqual(ltUserId.Count, mng.ltUser.Count);
       for (int iU = 0; iU < ltUserId.Count; iU++) {
-        Assert.AreEqual(ltUserId[iU], mn.ltUser[iU].id);
+        Assert.AreEqual(ltUserId[iU], mng.ltUser[iU].id);
       }
 
       // Player name
-      Assert.AreEqual(ltPlayerName.Count, mn.ltPlayer.Count);
+      Assert.AreEqual(ltPlayerName.Count, mng.ltPlayer.Count);
       for (int iPl = 0; iPl < ltPlayerName.Count; iPl++) {
-        Assert.AreEqual(ltPlayerName[iPl], mn.ltPlayer[iPl].sName);
+        Assert.AreEqual(ltPlayerName[iPl], mng.ltPlayer[iPl].sName);
       }
     }
 
