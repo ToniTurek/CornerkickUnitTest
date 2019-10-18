@@ -591,6 +591,7 @@ namespace CornerkickUnitTest
           uint iPassA = 0;
           uint iOffsiteH = 0;
           uint iOffsiteA = 0;
+          double[] fGrade = new double[11]; // Average grade depending on position
 
 #if _ML
           double fWfPass = 1f;
@@ -621,7 +622,16 @@ namespace CornerkickUnitTest
 
             int iGoalH = 0;
             int iGoalA = 0;
+            int iShootRes = -1;
             while (gameTest.next() > 0) {
+              if (iShootRes >= 0) {
+                if (iShootRes == 4) { // Cornerkick
+                  Assert.AreEqual(3, Math.Abs(gameTest.iStandard));
+                  Assert.AreEqual(true, gameTest.ball.ptPos.X <= 0 || gameTest.ball.ptPos.X >= gameTest.ptPitch.X);
+                }
+              }
+              iShootRes = -1;
+
               if (CornerkickGame.Tool.correctPos(ref gameTest.ball.ptPos, gameTest.ptPitch.X)) gameTest.tl.writeState();
 
               Assert.AreEqual(false, CornerkickGame.Tool.correctPos(ref gameTest.ball.ptPos, gameTest.ptPitch.X), "Ball Position [" + ptBall.X + "/" + ptBall.Y + "] corrected. (Minute: " + gameTest.tsMinute.ToString() + ")");
@@ -646,7 +656,7 @@ namespace CornerkickUnitTest
               }
 
               // Test player positions
-              checkPlayerOnSamePosition(gameTest.player);
+              Assert.AreEqual(false, checkPlayerOnSamePosition(gameTest.player));
 
               // Test player action array
               if (gameTest.ball.plAtBall != null) {
@@ -658,6 +668,8 @@ namespace CornerkickUnitTest
               CornerkickGame.Game.State stateLast  = gameTest.data.ltState[gameTest.data.ltState.Count - 1];
               CornerkickGame.Game.Shoot shoot = stateLast.shoot;
               if (shoot.plShoot != null) {
+                iShootRes = shoot.iResult;
+
                 float fDistTmp = CornerkickGame.Tool.getDistanceToGoal(shoot.plShoot, gameTest.ptPitch.X, gameTest.fConvertDist2Meter)[0];
                 if (fDistTmp > 50) {
                   Debug.Write(fDistTmp.ToString("0.0m") + ", ");
@@ -744,6 +756,20 @@ namespace CornerkickUnitTest
             iOffsiteH += (uint)gameTest.data.team[0].iOffsite;
             iOffsiteA += (uint)gameTest.data.team[1].iOffsite;
 
+            // Player grade
+            double[] fGradeTeamAve = new double[fGrade.Length];
+            int[] iPlG = new int[fGradeTeamAve.Length];
+            for (byte iHA = 0; iHA < 2; iHA++) {
+              foreach (CornerkickGame.Player plG in gameTest.player[iHA]) {
+                byte iPosGrd = CornerkickGame.Tool.getBasisPos(gameTest.tl.getPosRole(plG));
+                fGradeTeamAve[iPosGrd - 1] += plG.getGrade(iPosGrd, 90);
+                iPlG[iPosGrd - 1]++;
+              }
+            }
+            for (byte iGrd = 0; iGrd < fGrade.Length; iGrd++) {
+              if (iPlG[iGrd] > 0) fGrade[iGrd] += fGradeTeamAve[iGrd] / iPlG[iGrd];
+            }
+
             if      (gameTest.data.team[0].iGoals > gameTest.data.team[1].iGoals) iV++;
             else if (gameTest.data.team[0].iGoals < gameTest.data.team[1].iGoals) iL++;
             else                                                                  iD++;
@@ -757,6 +783,10 @@ namespace CornerkickUnitTest
 
           fShootDistH /= iShootsH;
           fShootDistA /= iShootsA;
+
+          for (byte iGrd = 0; iGrd < fGrade.Length; iGrd++) {
+            fGrade[iGrd] /= nGames;
+          }
 
           Debug.WriteLine("");
           Debug.WriteLine("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
@@ -782,6 +812,9 @@ namespace CornerkickUnitTest
           Trace.WriteLine("   possession: " + ((iPossH       + iPossA)       / (2.0 * nGames)).ToString("0.0")    + " / " + (iPossH       / (double)iPossA)      .ToString("0.0000"));
           Trace.WriteLine("       passes: " + ((iPassH       + iPassA)       / (2.0 * nGames)).ToString("0.00")   + " / " + (iPassH       / (double)iPassA)      .ToString("0.0000"));
           Trace.WriteLine("     offsites: " + ((iOffsiteH    + iOffsiteA)    / (2.0 * nGames)).ToString("0.0000") + " / " + (iOffsiteH    / (double)iOffsiteA)   .ToString("0.0000"));
+          Trace.Write("    pl. grade: | ");
+          for (byte iGrd = 0; iGrd < fGrade.Length; iGrd++) Trace.Write(fGrade[iGrd].ToString("0.00") + " | ");
+          Trace.WriteLine("");
 
           Trace.WriteLine(" +--------+--------+--------+--------+--------+--------+--------+--------+");
           Trace.WriteLine(" |   <5m  |  <10m  |  <15m  |  <20m  |  <25m  |  <30m  |  <35m  |  >35m  |");
@@ -821,6 +854,9 @@ namespace CornerkickUnitTest
           if (iStepsA      > 0) Assert.AreEqual(1.0, iStepsH      / (double)iStepsA,      0.2);
           if (iPossA       > 0) Assert.AreEqual(1.0, iPossH       / (double)iPossA,       0.2);
           if (iOffsiteA    > 0) Assert.AreEqual(1.0, iOffsiteH    / (double)iOffsiteA,    0.2);
+          for (byte iGrd = 0; iGrd < fGrade.Length; iGrd++) {
+            if (fGrade[iGrd] > 0.0) Assert.AreEqual(3.5, fGrade[iGrd], 0.2);
+          }
 #endif
 
 #if _DoE
@@ -832,18 +868,19 @@ namespace CornerkickUnitTest
 #endif
     }
 
-    private void checkPlayerOnSamePosition(CornerkickGame.Player[][] player)
+    private bool checkPlayerOnSamePosition(CornerkickGame.Player[][] player)
     {
       for (byte iHA = 0; iHA < 2; iHA++) {
         foreach (CornerkickGame.Player plr in player[iHA]) {
-          for (byte jHA = 0; jHA < 2; jHA++) {
-            foreach (CornerkickGame.Player plr2 in player[jHA]) {
-              if (plr == plr2) continue;
-              Assert.AreEqual(false, plr.ptPos == plr2.ptPos);
-            }
+          foreach (CornerkickGame.Player plr2 in player[1 - iHA]) {
+            if (plr == plr2) continue;
+            if (plr.ptPos == plr2.ptPos) return true;
+            //Assert.AreEqual(false, plr.ptPos == plr2.ptPos);
           }
         }
       }
+
+      return false;
     }
 
     private void addShootToRange(float fShootDist, ref int[] iShootRange, byte iShootResult, ref int[] iShootRangeGoal)
@@ -921,8 +958,6 @@ namespace CornerkickUnitTest
       CornerkickGame.Game game1 = switchTeams(game0);
 
       if (game0.ball.plAtBall != null) {
-        CornerkickGame.Player plDummy = null;
-
         CornerkickGame.Player plClosestOpp0 = game0.tl.getClosestPlayer(game0.ball.plAtBall, game0.ball.plAtBall.iHA == 1);
         int iDistClosestOpp0 = game0.tl.getDistancePlayerSteps(game0.ball.plAtBall, plClosestOpp0);
         CornerkickGame.Player plClosestOpp1 = game1.tl.getClosestPlayer(game1.ball.plAtBall, game1.ball.plAtBall.iHA == 1);
