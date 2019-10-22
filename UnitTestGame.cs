@@ -812,9 +812,20 @@ namespace CornerkickUnitTest
           Trace.WriteLine("   possession: " + ((iPossH       + iPossA)       / (2.0 * nGames)).ToString("0.0")    + " / " + (iPossH       / (double)iPossA)      .ToString("0.0000"));
           Trace.WriteLine("       passes: " + ((iPassH       + iPassA)       / (2.0 * nGames)).ToString("0.00")   + " / " + (iPassH       / (double)iPassA)      .ToString("0.0000"));
           Trace.WriteLine("     offsites: " + ((iOffsiteH    + iOffsiteA)    / (2.0 * nGames)).ToString("0.0000") + " / " + (iOffsiteH    / (double)iOffsiteA)   .ToString("0.0000"));
-          Trace.Write("    pl. grade: | ");
-          for (byte iGrd = 0; iGrd < fGrade.Length; iGrd++) Trace.Write(fGrade[iGrd].ToString("0.00") + " | ");
+          Trace.WriteLine(" +------+------+------+------+------+------+------+------+");
+          Trace.WriteLine(" |  KP  |  CD  |  SD  |  DM  |  SM  |  OM  |  SF  |  CF  |");
+          Trace.WriteLine(" +------+------+------+------+------+------+------+------+");
+          Trace.Write    (" | ");
+          for (byte iGrd = 0; iGrd < fGrade.Length; iGrd++) {
+            if (iGrd == 2 || iGrd == 5 || iGrd == 8) {
+              Trace.Write(((fGrade[iGrd] + fGrade[iGrd + 1]) / 2f).ToString("0.00") + " | ");
+              iGrd++;
+            } else {
+              Trace.Write(fGrade[iGrd].ToString("0.00") + " | ");
+            }
+          }
           Trace.WriteLine("");
+          Trace.WriteLine(" +------+------+------+------+------+------+------+------+");
 
           Trace.WriteLine(" +--------+--------+--------+--------+--------+--------+--------+--------+");
           Trace.WriteLine(" |   <5m  |  <10m  |  <15m  |  <20m  |  <25m  |  <30m  |  <35m  |  >35m  |");
