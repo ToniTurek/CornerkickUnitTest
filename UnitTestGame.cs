@@ -548,6 +548,8 @@ namespace CornerkickUnitTest
       const int nGames = 1000;
       const float fRefereeCorruptHome = 0f;
 
+      Random rnd = new Random();
+
       CornerkickManager.Main mn = new CornerkickManager.Main();
 
       DateTime dtStart = DateTime.Now;
@@ -599,9 +601,14 @@ namespace CornerkickUnitTest
 #endif
 
           for (int iG = 0; iG < nGames; iG++) {
+            // Create default game
             CornerkickGame.Game gameTest = game.tl.getDefaultGame();
             gameTest.data.bInjuriesPossible = false;
             gameTest.data.bCardsPossible = false;
+
+            // Shuffle formations
+            gameTest.data.team[0].ltTactic[0].formation = mn.ltFormationen[rnd.Next(mn.ltFormationen.Count)];
+            gameTest.data.team[1].ltTactic[0].formation = mn.ltFormationen[rnd.Next(mn.ltFormationen.Count)];
 
             // Corrupt referee
             gameTest.data.team[0].fRefereeCorrupt = fRefereeCorruptHome;
