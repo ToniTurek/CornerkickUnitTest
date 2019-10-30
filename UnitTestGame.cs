@@ -171,8 +171,7 @@ namespace CornerkickUnitTest
 
         gameTest.ball.plAtBall = gameTest.player[iHA][1];
 
-        List<double> fPassChance;
-        List<CornerkickGame.Player> ltReceiver = gameTest.ai.getReceiverList(gameTest.ball.plAtBall, out fPassChance);
+        List<CornerkickGame.AI.Receiver> ltReceiver = gameTest.ai.getReceiverList(gameTest.ball.plAtBall);
 
         /*
         Assert.AreEqual(7, ltReceiver .Count);
@@ -312,7 +311,6 @@ namespace CornerkickUnitTest
       CornerkickGame.Player plOff1 = gameTest.player[0][ 8];
       CornerkickGame.Player plOff2 = gameTest.player[0][ 9];
       CornerkickGame.Player plOff3 = gameTest.player[0][10];
-      CornerkickGame.Player plReceiver = null;
 
       plOff1.iLookAt = 3;
       plOff2.iLookAt = 3;
@@ -334,12 +332,12 @@ namespace CornerkickUnitTest
         gameTest.ball.ptPos = plOff2.ptPos;
         gameTest.ball.plAtBall = plOff2;
 
-        float[] fPlAction = gameTest.ai.getPlayerAction(plOff2, out plReceiver, false, 10);
+        float[] fPlAction = gameTest.ai.getPlayerAction(plOff2, false, 10);
         //Assert.AreEqual(fChance[iRelDist], fPlAction[0], 0.002, "ChanceShoot");
       }
 
       gameTest.iStandard = 2;
-      float[] fPlActionFreekick = gameTest.ai.getPlayerAction(plOff2, out plReceiver, false, 10);
+      float[] fPlActionFreekick = gameTest.ai.getPlayerAction(plOff2, false, 10);
       //Assert.AreEqual(0.0340206772, fPlActionFreekick[0], 0.2, "ChanceShoot Freekick");
       gameTest.next();
     }
@@ -366,7 +364,6 @@ namespace CornerkickUnitTest
       CornerkickGame.Player plOff1 = gameTest.player[0][ 8];
       CornerkickGame.Player plOff2 = gameTest.player[0][ 9];
       CornerkickGame.Player plOff3 = gameTest.player[0][10];
-      CornerkickGame.Player plReceiver = null;
 
       plOff1.iLookAt = 3;
       plOff2.iLookAt = 3;
@@ -387,7 +384,7 @@ namespace CornerkickUnitTest
       gameTest.ball.ptPos = plOff1.ptPos;
       gameTest.ball.plAtBall = plOff1;
 
-      float[] fPlAction = gameTest.ai.getPlayerAction(plOff1, out plReceiver, false, 10);
+      float[] fPlAction = gameTest.ai.getPlayerAction(plOff1, false, 10);
 #if _AI2
       Assert.AreEqual(0.9473, fPlAction[1], 0.02);
 #else
@@ -464,7 +461,7 @@ namespace CornerkickUnitTest
     [TestMethod]
     public void TestPenalty()
     {
-      const int nPenalties = 20000;
+      const int nPenalties = 10000;
 
       for (byte iHA = 0; iHA < 2; iHA++) {
         int iG = 0;
@@ -600,6 +597,7 @@ namespace CornerkickUnitTest
           double fWfPassCounter = 0;
 #endif
 
+          int[] iGamesGrd = new int[fGrade.Length];
           for (int iG = 0; iG < nGames; iG++) {
             // Create default game
             CornerkickGame.Game gameTest = game.tl.getDefaultGame();
@@ -774,7 +772,10 @@ namespace CornerkickUnitTest
               }
             }
             for (byte iGrd = 0; iGrd < fGrade.Length; iGrd++) {
-              if (iPlG[iGrd] > 0) fGrade[iGrd] += fGradeTeamAve[iGrd] / iPlG[iGrd];
+              if (iPlG[iGrd] > 0) {
+                fGrade[iGrd] += fGradeTeamAve[iGrd] / iPlG[iGrd];
+                iGamesGrd[iGrd]++;
+              }
             }
 
             if      (gameTest.data.team[0].iGoals > gameTest.data.team[1].iGoals) iV++;
@@ -792,7 +793,7 @@ namespace CornerkickUnitTest
           fShootDistA /= iShootsA;
 
           for (byte iGrd = 0; iGrd < fGrade.Length; iGrd++) {
-            fGrade[iGrd] /= nGames;
+            fGrade[iGrd] /= iGamesGrd[iGrd];
           }
 
           Debug.WriteLine("");
@@ -1318,6 +1319,7 @@ namespace CornerkickUnitTest
       Assert.AreEqual(true, cupInter.ltMatchdays.Count > 10);
       Assert.AreEqual(true, cupInter.ltMatchdays[10].ltGameData.Count == 1);
 
+      // World cup
       Assert.AreEqual(true, cupWc.ltMatchdays.Count > 4);
       Assert.AreEqual(true, cupWc.ltMatchdays[4].ltGameData.Count == 1);
       Assert.AreEqual(true, cupWc.ltMatchdays[4].ltGameData[0].team[0].iGoals >= 0);
@@ -1439,6 +1441,7 @@ namespace CornerkickUnitTest
         clb.user = usr;
         clb.training.iType[1] = 2; // Condition
         clb.staff.iCondiTrainer = 4;
+        clb.buildings.iGym[0] = 2;
         mn.ltClubs.Add(clb);
 
         usr.club = clb;
@@ -1470,25 +1473,25 @@ namespace CornerkickUnitTest
 
         // Test
         if        (i == 0) { // Test common training increase of condi. (3.03%)
-          Assert.AreEqual(0.8303127, pl.fCondition, 0.00001);
+          Assert.AreEqual(0.83173, pl.fCondition, 0.00001);
 
           fCondi0 = pl.fCondition;
           fFresh0 = pl.fFresh;
           fMood0  = pl.fMoral;
         } else if (i == 1) { // Test training increase with trainer level 5
-          Assert.AreEqual(1.0414059, pl.fCondition / fCondiPre, 0.00001);
+          Assert.AreEqual(1.0422665, pl.fCondition / fCondiPre, 0.00001);
           Assert.AreEqual(0.9730000, pl.fFresh     / fFreshPre, 0.00001);
           Assert.AreEqual(0.9921875, pl.fMoral     / fMoodPre,  0.00001);
 
-          Assert.AreEqual(1.0033867, pl.fCondition / fCondi0,   0.00001);
+          Assert.AreEqual(1.0025042, pl.fCondition / fCondi0,   0.00001);
           Assert.AreEqual(1.0000000, pl.fFresh     / fFresh0,   0.00001);
           Assert.AreEqual(1.0000000, pl.fMoral     / fMood0,    0.00001);
         } else if (i == 2) { // Test training increase with training camp
-          Assert.AreEqual(1.0522859, pl.fCondition / fCondiPre, 0.00001);
+          Assert.AreEqual(1.0539495, pl.fCondition / fCondiPre, 0.00001);
           Assert.AreEqual(0.9737864, pl.fFresh     / fFreshPre, 0.00001);
           Assert.AreEqual(0.9927326, pl.fMoral     / fMoodPre,  0.00001);
 
-          Assert.AreEqual(1.0138696, pl.fCondition / fCondi0,   0.00001);
+          Assert.AreEqual(1.0137415, pl.fCondition / fCondi0,   0.00001);
           Assert.AreEqual(1.0008082, pl.fFresh     / fFresh0,   0.00001);
           Assert.AreEqual(1.0005494, pl.fMoral     / fMood0,    0.00001);
         } else if (i == 3) { // Test training increase with doping
