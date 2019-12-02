@@ -923,7 +923,8 @@ namespace CornerkickUnitTest
         mng.io.load(sLoadFile);
 
         // Perform next step until end of season
-        while (mng.next(true) < 99) {
+        int iSeasonFst = mng.iSeason;
+        while (mng.next(true) < 99 || iSeasonFst == mng.iSeason) {
           Debug.WriteLine(mng.dtDatum.ToString());
         }
 
