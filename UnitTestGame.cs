@@ -874,7 +874,7 @@ namespace CornerkickUnitTest
           if (iPossA       > 0) Assert.AreEqual(1.0, iPossH       / (double)iPossA,       0.2);
           if (iOffsiteA    > 0) Assert.AreEqual(1.0, iOffsiteH    / (double)iOffsiteA,    0.2);
           for (byte iGrd = 0; iGrd < fGrade.Length; iGrd++) {
-            if (fGrade[iGrd] > 0.0) Assert.AreEqual(3.5, fGrade[iGrd], 0.2);
+            if (fGrade[iGrd] > 0.0) Assert.AreEqual(3.5, fGrade[iGrd], 0.2, "Grade: " + iGrd.ToString());
           }
 #endif
 
@@ -1601,14 +1601,58 @@ namespace CornerkickUnitTest
 
       CornerkickGame.Player pl = new CornerkickGame.Player(7);
 
-      // Player value should be 2.29 mio €
+      // Player value should be 2.290 mio €
       pl.fExperiencePos[10] = 1.0f;
       Assert.AreEqual(2290, pl.getValue(25f, 1000),  0.00001);
 
-      // Player value should be 2.29 mio €
+      // Player value should be 3.022 mio €
       pl.fExperiencePos[ 8] = 0.5f;
       pl.fExperiencePos[ 9] = 0.5f;
       Assert.AreEqual(3022, pl.getValue(25f, 1000),  0.00001);
+    }
+
+    [TestMethod]
+    public void TestNegotiateContract()
+    {
+      const int iRepeat = 10000;
+      const int iContractLength = 2;
+      const int iGamesPerSeason = 30;
+
+      CornerkickManager.Main mn  = new CornerkickManager.Main();
+
+      CornerkickManager.Club clb = new CornerkickManager.Club();
+      CornerkickGame.Player pl = new CornerkickGame.Player(7);
+
+      pl.dtBirthday = new DateTime(mn.dtDatum.Year - 25, 1, 1);
+      pl.fExperiencePos[10] = 1.0f;
+
+      CornerkickGame.Player.Contract ctrReq = mn.plr.getContract(pl, iContractLength, iGamesPerSeason: iGamesPerSeason);
+
+      ///////////////////////////////////////////////////////////////////
+      // Test bonus offered = bonus req.
+      double fMood = 0.0;
+      for (int iN = 0; iN < iRepeat; iN++) {
+        mn.ltTransfer.Clear();
+        CornerkickGame.Player.Contract ctrNew = mn.tl.negotiatePlayerContract(pl, clb, 2, iSalaryOffer: (int)(ctrReq.iSalary * 0.9), iBonusPlayOffer: ctrReq.iPlay, iBonusGoalOffer: ctrReq.iGoal, iGamesPerSeason: iGamesPerSeason);
+        fMood += ctrNew.fMood;
+      }
+      fMood /= iRepeat;
+
+      // Test average mood
+      Assert.AreEqual(0.715, fMood, 0.01);
+
+      ///////////////////////////////////////////////////////////////////
+      // Test bonus offered < bonus req.
+      fMood = 0.0;
+      for (int iN = 0; iN < iRepeat; iN++) {
+        mn.ltTransfer.Clear();
+        CornerkickGame.Player.Contract ctrNew = mn.tl.negotiatePlayerContract(pl, clb, 2, iSalaryOffer: (int)(ctrReq.iSalary * 0.9), iBonusPlayOffer: (int)(ctrReq.iPlay * 0.9), iBonusGoalOffer: (int)(ctrReq.iGoal * 0.9), iGamesPerSeason: iGamesPerSeason);
+        fMood += ctrNew.fMood;
+      }
+      fMood /= iRepeat;
+
+      // Test average mood
+      Assert.AreEqual(0.620, fMood, 0.01);
     }
 
   }
