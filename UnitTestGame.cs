@@ -591,6 +591,12 @@ namespace CornerkickUnitTest
           uint iOffsiteH = 0;
           uint iOffsiteA = 0;
           double[] fGrade = new double[11]; // Average grade depending on position
+          int[][][] iScorerField = new int[2][][]; // Scorer counter dependend on pitch position [shooter/assist][X][Y]
+          for (int j = 0; j < iScorerField.Length; j++) {
+            iScorerField[j] = new int[6][];
+            for (int jj = 0; jj < iScorerField[j].Length; jj++) iScorerField[j][jj] = new int[5];
+          }
+          int iAssists = 0;
 
 #if _ML
           double fWfPass = 1f;
@@ -696,6 +702,28 @@ namespace CornerkickUnitTest
                 }
 
                 testGoal(gameTest, iGoalH != gameTest.data.team[0].iGoals, iGoalH, iGoalA);
+
+                // Count scorer position on field
+                for (byte jj = 0; jj < 2; jj++) {
+                  CornerkickGame.Player plField = shoot.plShoot;
+                  if (jj > 0) plField = shoot.plAssist;
+
+                  if (plField == null) continue;
+
+                  Point ptFieldPos = CornerkickGame.Tool.transformPosition(plField.ptPos, gameTest.ptPitch.X, plField.iHA == 1);
+                  int iFieldPosX = ptFieldPos.X / 10;
+                  if (iFieldPosX >= iScorerField[0].Length) iFieldPosX = iScorerField[0].Length - 1;
+
+                  int iFieldPosY = 2;
+                  if       (ptFieldPos.Y <= -gameTest.ptPitch.Y * (4f / 5f)) iFieldPosY = 0;
+                  else if  (ptFieldPos.Y <= -gameTest.ptPitch.Y * (2f / 5f)) iFieldPosY = 1;
+                  else if  (ptFieldPos.Y >= +gameTest.ptPitch.Y * (4f / 5f)) iFieldPosY = 4;
+                  else if  (ptFieldPos.Y >= +gameTest.ptPitch.Y * (2f / 5f)) iFieldPosY = 3;
+                
+                  iScorerField[jj][iFieldPosX][iFieldPosY]++;
+
+                  if (jj > 0) iAssists++;
+                }
               }
 
               iGoalH = gameTest.data.team[0].iGoals;
@@ -804,6 +832,16 @@ namespace CornerkickUnitTest
           Trace.Listeners.Add(new TextWriterTraceListener(mn.sHomeDir + "/Test_Results.txt"));
           Trace.AutoFlush = true;
           Trace.Indent();
+
+          // Assist field
+          Trace.WriteLine("Goals/Assists field:");
+          for (int jY = 0; jY < iScorerField[0][0].Length; jY++) { // for each Y
+            for (int jX = 0; jX < iScorerField[0].Length; jX++) { // for each X
+              Trace.Write((iScorerField[0][jX][jY] / (float)(iGH + iGA)).ToString(" 00.00%") + "/" + (iScorerField[1][jX][jY] / (float)iAssists).ToString("00.00% "));
+            }
+            Trace.WriteLine("");
+          }
+          Trace.WriteLine("");
 
 #if _AI2
           Trace.WriteLine("Start date: " + dtStart + ". Performed games: " + nGames.ToString() + " (AI_v2)");
