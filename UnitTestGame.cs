@@ -1634,7 +1634,7 @@ namespace CornerkickUnitTest
         clb.user = usr;
         clb.training.iType[1] = 2; // Condition
         clb.staff.iCondiTrainer = 4;
-        clb.buildings.iGym[0] = 2;
+        clb.buildings.bgGym.iLevel = 2;
         mn.ltClubs.Add(clb);
 
         usr.club = clb;
@@ -1680,13 +1680,13 @@ namespace CornerkickUnitTest
           Assert.AreEqual(1.0000000, pl.fFresh     / fFresh0,   0.00001);
           Assert.AreEqual(1.0000000, pl.fMoral     / fMood0,    0.00001);
         } else if (i == 2) { // Test training increase with training camp
-          Assert.AreEqual(1.0539495, pl.fCondition / fCondiPre, 0.00001);
-          Assert.AreEqual(0.9737864, pl.fFresh     / fFreshPre, 0.00001);
-          Assert.AreEqual(0.9927326, pl.fMoral     / fMoodPre,  0.00001);
+          Assert.AreEqual(1.0603906, pl.fCondition / fCondiPre, 0.00001);
+          Assert.AreEqual(0.9792308, pl.fFresh     / fFreshPre, 0.00001);
+          Assert.AreEqual(0.9943182, pl.fMoral     / fMoodPre,  0.00001);
 
-          Assert.AreEqual(1.0137415, pl.fCondition / fCondi0,   0.00001);
-          Assert.AreEqual(1.0008082, pl.fFresh     / fFresh0,   0.00001);
-          Assert.AreEqual(1.0005494, pl.fMoral     / fMood0,    0.00001);
+          Assert.AreEqual(1.0199369, pl.fCondition / fCondi0,   0.00001);
+          Assert.AreEqual(1.0064037, pl.fFresh     / fFresh0,   0.00001);
+          Assert.AreEqual(1.0021474, pl.fMoral     / fMood0,    0.00001);
         } else if (i == 3) { // Test training increase with doping
           Assert.AreEqual(1.0378909, pl.fCondition / fCondiPre, 0.00001);
           Assert.AreEqual(1.0000000, pl.fFresh     / fFreshPre, 0.00001);
