@@ -1432,10 +1432,53 @@ namespace CornerkickUnitTest
       mn.drawCup(cupInter);
       mn.drawCup(league);
       mn.drawCup(cupWc);
-      
+
+      // Test construction
+      CornerkickManager.UI.doConstruction(mn.ltClubs[0], 0, 2);
+      CornerkickManager.UI.doConstruction(mn.ltClubs[0], 1, 2);
+      CornerkickManager.UI.doConstruction(mn.ltClubs[0], 2, 2);
+      CornerkickManager.UI.doConstruction(mn.ltClubs[0], 3, 2);
+      CornerkickManager.UI.doConstruction(mn.ltClubs[0], 4, 2);
+      CornerkickManager.UI.doConstruction(mn.ltClubs[0], 5, 2);
+
+      int iDayConstruct = 0;
+      float iDaysConstruct1 = 180;
+      float iDaysConstruct2 = 120;
+
       // Perform next step until end of season
-      while (mn.next() < 99) {
+      while (mn.next(bContinuingTime: true) < 99) {
         Debug.WriteLine(mn.dtDatum.ToString());
+
+        if (mn.dtDatum.Hour == 0 && mn.dtDatum.Minute == 0) {
+          // Test constructions
+          if (iDaysConstruct1 - iDayConstruct > 0) {
+            Assert.AreEqual(mn.ltClubs[0].buildings.bgTrainingCourts.ctn.fDaysConstruct, iDaysConstruct1 - iDayConstruct, 0.001);
+            Assert.AreEqual(mn.ltClubs[0].buildings.bgGym.ctn.fDaysConstruct, iDaysConstruct1 - iDayConstruct, 0.001);
+            Assert.AreEqual(mn.ltClubs[0].buildings.bgSpa.ctn.fDaysConstruct, iDaysConstruct1 - iDayConstruct, 0.001);
+            Assert.AreEqual(mn.ltClubs[0].buildings.bgClubHouse.ctn.fDaysConstruct, iDaysConstruct1 - iDayConstruct, 0.001);
+            Assert.AreEqual(mn.ltClubs[0].buildings.bgClubMuseum.ctn.fDaysConstruct, iDaysConstruct1 - iDayConstruct, 0.001);
+
+            iDaysConstruct1 = mn.ltClubs[0].buildings.bgGym.ctn.fDaysConstruct + iDayConstruct; // Reset for float precision
+          } else {
+            Assert.AreEqual(null, mn.ltClubs[0].buildings.bgTrainingCourts.ctn);
+            Assert.AreEqual(null, mn.ltClubs[0].buildings.bgGym.ctn);
+            Assert.AreEqual(null, mn.ltClubs[0].buildings.bgSpa.ctn);
+            Assert.AreEqual(null, mn.ltClubs[0].buildings.bgClubHouse.ctn);
+            Assert.AreEqual(null, mn.ltClubs[0].buildings.bgClubMuseum.ctn);
+          }
+
+          if (iDaysConstruct2 - iDayConstruct > 0) {
+            Assert.AreEqual(mn.ltClubs[0].buildings.bgJouthInternat.ctn.fDaysConstruct, iDaysConstruct2 - iDayConstruct, 0.001);
+
+            iDaysConstruct2 = mn.ltClubs[0].buildings.bgJouthInternat.ctn.fDaysConstruct + iDayConstruct; // Reset for float precision
+          } else {
+            Assert.AreEqual(null, mn.ltClubs[0].buildings.bgJouthInternat.ctn);
+          }
+
+          if ((int)mn.dtDatum.DayOfWeek > 0 && (int)mn.dtDatum.DayOfWeek < 6) { // ... on weekdays
+            iDayConstruct++;
+          }
+        }
       }
 
       Debug.WriteLine("Start of season: " + mn.dtSeasonStart.ToString());
