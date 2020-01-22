@@ -1002,14 +1002,83 @@ namespace CornerkickUnitTest
 #endif
         mng.io.load(sLoadFile);
 
+        CornerkickManager.Cup cpGold = mng.tl.getCup(3);
+
+        mng.next(true);
+        for (int iMd = 0; iMd < cpGold.ltMatchdays.Count; iMd++) {
+          CornerkickManager.Cup.Matchday md = cpGold.ltMatchdays[iMd];
+          md.dt = md.dt.AddMinutes(6075);
+
+          for (int iGd = 0; iGd < md.ltGameData.Count; iGd++) {
+            CornerkickGame.Game.Data gd = md.ltGameData[iGd];
+            gd.dt = md.dt;
+          }
+        }
+
         // Perform next step until end of season
         int iSeasonFst = mng.iSeason;
         while (mng.next(true) < 99 || iSeasonFst == mng.iSeason) {
           Debug.WriteLine(mng.dtDatum.ToString());
+
+          // Check that only one game per day
+          Assert.AreEqual(false, testGameOnSameDay(mng));
         }
+
+        // League
+        CornerkickManager.Cup league = mng.tl.getCup(1, 36);
+        if (league != null) {
+          List<CornerkickManager.Tool.TableItem> table = CornerkickManager.Tool.getLeagueTable(league);
+          Assert.AreEqual(true, table[0].iGoals > 0);
+          Assert.AreEqual(true, table[0].iGUV[0] > table[0].iGUV[2]);
+        }
+
+        foreach (CornerkickManager.Cup cpNat in mng.ltCups) {
+          if (cpNat.iId == 2) {
+            Assert.AreEqual(true, cpNat.ltMatchdays.Count > 3);
+            Assert.AreEqual(true, cpNat.ltMatchdays[3].ltGameData.Count == 1);
+          }
+        }
+
+        Assert.AreEqual(true, cpGold.ltMatchdays.Count > 10);
+        Assert.AreEqual(true, cpGold.ltMatchdays[10].ltGameData.Count == 1);
+
+        // World cup
+        CornerkickManager.Cup cupWc = mng.tl.getCup(7);
+        Assert.AreEqual(true, cupWc.ltMatchdays.Count > 4);
+        Assert.AreEqual(true, cupWc.ltMatchdays[4].ltGameData.Count == 1);
+        Assert.AreEqual(true, cupWc.ltMatchdays[4].ltGameData[0].team[0].iGoals >= 0);
+        Assert.AreEqual(true, cupWc.ltMatchdays[4].ltGameData[0].team[1].iGoals >= 0);
+        Assert.AreEqual(true, cupWc.ltMatchdays[4].ltGameData[0].team[0].iGoals != cupWc.ltMatchdays[4].ltGameData[0].team[1].iGoals);
 
         testIO(mng);
       }
+    }
+
+    private bool testGameOnSameDay(CornerkickManager.Main mng)
+    {
+      foreach (CornerkickManager.Club clb in mng.ltClubs) {
+        bool bGame = false;
+
+        foreach (CornerkickManager.Cup cp in mng.ltCups) {
+          foreach (CornerkickManager.Cup.Matchday md in cp.ltMatchdays) {
+            if (mng.dtDatum.Equals(md.dt)) {
+              foreach (CornerkickGame.Game.Data gd in md.ltGameData) {
+                if (clb.iId == gd.team[0].iTeamId ||
+                    clb.iId == gd.team[1].iTeamId) {
+                  if (bGame) return true;
+
+                  bGame = true;
+                  break;
+                }
+              }
+
+              break;
+            }
+          }
+        }
+      }
+
+      return false;
     }
 
     [TestMethod]
