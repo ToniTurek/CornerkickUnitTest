@@ -611,8 +611,24 @@ namespace CornerkickUnitTest
             gameTest.data.bCardsPossible = false;
 
             // Shuffle formations
-            gameTest.data.team[0].ltTactic[0].formation = mn.ltFormationen[rnd.Next(mn.ltFormationen.Count)];
-            gameTest.data.team[1].ltTactic[0].formation = mn.ltFormationen[rnd.Next(mn.ltFormationen.Count)];
+            for (byte iHA = 0; iHA < 2; iHA++) {
+              gameTest.data.team[iHA].ltTactic[0].formation = mn.ltFormationen[rnd.Next(mn.ltFormationen.Count)];
+              gameTest.player[iHA] = CornerkickManager.Main.doFormation(gameTest.player[iHA], gameTest.data.team[iHA].ltTactic[0].formation, gameTest.data.nPlStart, gameTest.data.nPlRes, gameTest.ptPitch, 0, new DateTime()).ToArray();
+              
+              // Test if keeper in goal
+              if (gameTest.player[iHA][0].fExperiencePos[0] < 1f) {
+                gameTest.player[iHA] = CornerkickManager.Main.doFormation(gameTest.player[iHA], gameTest.data.team[iHA].ltTactic[0].formation, gameTest.data.nPlStart, gameTest.data.nPlRes, gameTest.ptPitch, 0, new DateTime()).ToArray();
+                gameTest.player[iHA] = CornerkickManager.Main.doFormation(gameTest.player[iHA], gameTest.data.team[iHA].ltTactic[0].formation, gameTest.data.nPlStart, gameTest.data.nPlRes, gameTest.ptPitch, 0, new DateTime()).ToArray();
+              }
+              Assert.AreEqual(1.0, gameTest.player[iHA][0].fExperiencePos[0], 0.001);
+
+              float fSkillAve = 0f;
+              for (byte iPl = 0; iPl < gameTest.data.nPlStart; iPl++) {
+                fSkillAve += CornerkickGame.Tool.getAveSkill(gameTest.player[iHA][iPl]);
+              }
+              fSkillAve /= gameTest.data.nPlStart;
+              Assert.AreEqual(7.0173, fSkillAve, 0.001);
+            }
 
             // Corrupt referee
             gameTest.data.team[0].fRefereeCorrupt = fRefereeCorruptHome;
@@ -625,7 +641,26 @@ namespace CornerkickUnitTest
             gameTest.ai.fWfChanceSolo = fWf2;
 #endif
 
+            // Test correct set of jersey numbers
+            gameTest.player[0][0].iNr = 0;
+            gameTest.player[0][1].iNr = 2;
+            gameTest.player[0][2].iNr = 2;
+            gameTest.player[0][3].iNr = 3;
+
+            // Do an initial step
             gameTest.next();
+
+            // Check jersey numbers
+            for (byte iHA = 0; iHA < 2; iHA++) {
+              for (byte iPl = 0; iPl < gameTest.player[iHA].Length; iPl++) {
+                byte iJerseyNb = gameTest.player[iHA][iPl].iNr;
+                Assert.AreEqual(false, iJerseyNb == 0);
+
+                for (int jPl = iPl + 1; jPl < gameTest.player[iHA].Length; jPl++) {
+                  Assert.AreEqual(false, iJerseyNb == gameTest.player[iHA][jPl].iNr);
+                }
+              }
+            }
 
             const int iBallCounterMax = 100;
             int iBallCounter = 0;
@@ -646,7 +681,14 @@ namespace CornerkickUnitTest
               if (CornerkickGame.Tool.correctPos(ref gameTest.ball.ptPos, gameTest.ptPitch.X)) gameTest.tl.writeState();
 
               Assert.AreEqual(false, CornerkickGame.Tool.correctPos(ref gameTest.ball.ptPos, gameTest.ptPitch.X), "Ball Position [" + ptBall.X + "/" + ptBall.Y + "] corrected. (Minute: " + gameTest.tsMinute.ToString() + ")");
-        
+
+              // Test player indexes
+              for (byte iHA = 0; iHA < 2; iHA++) {
+                for (byte iPl = 0; iPl < gameTest.data.nPlStart; iPl++) {
+                  Assert.AreEqual(iPl, gameTest.player[iHA][iPl].iIndex);
+                }
+              }
+
               if (gameTest.ball.ptPos == ptBall) {
                 iBallCounter++;
 
@@ -1347,7 +1389,7 @@ namespace CornerkickUnitTest
       Debug.WriteLine("End of season: " + mn.dtSeasonEnd.ToString());
 
       // League
-      List<CornerkickManager.Tool.TableItem> table = mn.tl.getLeagueTable(league);
+      List<CornerkickManager.Tool.TableItem> table = CornerkickManager.Tool.getLeagueTable(league);
       Assert.AreEqual(true, table.Count == nTeams);
       Assert.AreEqual(true, table[0].iGoals > 0);
       Assert.AreEqual(true, table[0].iGUV[0] > table[0].iGUV[2]);
