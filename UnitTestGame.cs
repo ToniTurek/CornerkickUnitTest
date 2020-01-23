@@ -992,8 +992,12 @@ namespace CornerkickUnitTest
     [TestMethod]
     public void TestIO()
     {
-      CornerkickManager.Main mng = new CornerkickManager.Main();
+      CornerkickManager.Main mng = new CornerkickManager.Main(bContinuingTime: true);
       mng.sHomeDir = Path.Combine(mng.sHomeDir, "io_test");
+#if _ANSYS
+      mng.sHomeDir = Path.Combine("D:\\scratch\\u522245\\test\\io_test");
+#endif
+
       string sLoadFile = Path.Combine(mng.sHomeDir, "test");
 #if _ANSYS
       if (Directory.Exists(sLoadFile)) {
@@ -1004,7 +1008,7 @@ namespace CornerkickUnitTest
 
         CornerkickManager.Cup cpGold = mng.tl.getCup(3);
 
-        mng.next(true);
+        mng.next();
         for (int iMd = 0; iMd < cpGold.ltMatchdays.Count; iMd++) {
           CornerkickManager.Cup.Matchday md = cpGold.ltMatchdays[iMd];
           md.dt = md.dt.AddMinutes(6075);
@@ -1017,7 +1021,7 @@ namespace CornerkickUnitTest
 
         // Perform next step until end of season
         int iSeasonFst = mng.iSeason;
-        while (mng.next(true) < 99 || iSeasonFst == mng.iSeason) {
+        while (mng.next() < 99 || iSeasonFst == mng.iSeason) {
           Debug.WriteLine(mng.dtDatum.ToString());
 
           // Check that only one game per day
@@ -1329,7 +1333,7 @@ namespace CornerkickUnitTest
     {
       const int iLand = 36;
 
-      CornerkickManager.Main mn = new CornerkickManager.Main();
+      CornerkickManager.Main mn = new CornerkickManager.Main(bContinuingTime: true);
 
       //mn.setNewSeason();
 
@@ -1446,7 +1450,7 @@ namespace CornerkickUnitTest
       float iDaysConstruct2 = 120;
 
       // Perform next step until end of season
-      while (mn.next(bContinuingTime: true) < 99) {
+      while (mn.next() < 99) {
         Debug.WriteLine(mn.dtDatum.ToString());
 
         if (mn.dtDatum.Hour == 0 && mn.dtDatum.Minute == 0) {
