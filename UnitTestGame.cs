@@ -873,6 +873,14 @@ namespace CornerkickUnitTest
           
           Trace.Listeners.Add(new TextWriterTraceListener(mn.sHomeDir + "/Test_Results.txt"));
           Trace.AutoFlush = true;
+
+          Trace.WriteLine("");
+          Trace.WriteLine("##################################################################################################");
+#if _AI2
+          Trace.WriteLine("### Start date: " + dtStart + ". Performed games: " + nGames.ToString() + " (AI_v2)");
+#else
+          Trace.WriteLine("### Start date: " + dtStart + ". Performed games: " + nGames.ToString());
+#endif
           Trace.Indent();
 
           // Assist field
@@ -885,11 +893,6 @@ namespace CornerkickUnitTest
           }
           Trace.WriteLine("");
 
-#if _AI2
-          Trace.WriteLine("Start date: " + dtStart + ". Performed games: " + nGames.ToString() + " (AI_v2)");
-#else
-          Trace.WriteLine("Start date: " + dtStart + ". Performed games: " + nGames.ToString());
-#endif
           Trace.WriteLine("                Ave.  /  H/A");
           Trace.WriteLine("        goals: " + ((iGH          + iGA)          / (2.0 * nGames)).ToString("0.0000") + " / " + (iGH          / (double)iGA)         .ToString("0.0000"));
           Trace.WriteLine("  chance goal: " + ((fChanceGoalH + fChanceGoalA) /  2.0          ).ToString("0.0000") + " / " + (fChanceGoalH /         fChanceGoalA).ToString("0.0000"));
