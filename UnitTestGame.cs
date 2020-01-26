@@ -613,12 +613,12 @@ namespace CornerkickUnitTest
             // Shuffle formations
             for (byte iHA = 0; iHA < 2; iHA++) {
               gameTest.data.team[iHA].ltTactic[0].formation = mn.ltFormationen[rnd.Next(mn.ltFormationen.Count)];
-              gameTest.player[iHA] = CornerkickManager.Main.doFormation(gameTest.player[iHA], gameTest.data.team[iHA].ltTactic[0].formation, gameTest.data.nPlStart, gameTest.data.nPlRes, gameTest.ptPitch, 0, new DateTime()).ToArray();
+              CornerkickManager.Main.doFormation(gameTest.player[iHA], gameTest.data.team[iHA].ltTactic[0].formation, gameTest.data.nPlStart, gameTest.data.nPlRes, gameTest.ptPitch, 0, new DateTime());
               
               // Test if keeper in goal
               if (gameTest.player[iHA][0].fExperiencePos[0] < 1f) {
-                gameTest.player[iHA] = CornerkickManager.Main.doFormation(gameTest.player[iHA], gameTest.data.team[iHA].ltTactic[0].formation, gameTest.data.nPlStart, gameTest.data.nPlRes, gameTest.ptPitch, 0, new DateTime()).ToArray();
-                gameTest.player[iHA] = CornerkickManager.Main.doFormation(gameTest.player[iHA], gameTest.data.team[iHA].ltTactic[0].formation, gameTest.data.nPlStart, gameTest.data.nPlRes, gameTest.ptPitch, 0, new DateTime()).ToArray();
+                CornerkickManager.Main.doFormation(gameTest.player[iHA], gameTest.data.team[iHA].ltTactic[0].formation, gameTest.data.nPlStart, gameTest.data.nPlRes, gameTest.ptPitch, 0, new DateTime());
+                CornerkickManager.Main.doFormation(gameTest.player[iHA], gameTest.data.team[iHA].ltTactic[0].formation, gameTest.data.nPlStart, gameTest.data.nPlRes, gameTest.ptPitch, 0, new DateTime());
               }
               Assert.AreEqual(1.0, gameTest.player[iHA][0].fExperiencePos[0], 0.001);
 
