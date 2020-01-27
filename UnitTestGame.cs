@@ -1620,88 +1620,107 @@ namespace CornerkickUnitTest
     [TestMethod]
     public void TestTraining()
     {
+      const byte iTrainingsPerDayMax = 3;
       const float fCondiIni = 0.8f;
+      const double fDeltaErr = 0.005;
+      byte[] iTrainingType = { 2, 1 };
 
       float fCondi0 = 0f;
       float fFresh0 = 0f;
       float fMood0  = 0f;
-      for (byte i = 0; i < 3; i++) {
-        CornerkickManager.Main mn  = new CornerkickManager.Main();
-        mn.dtDatum = mn.dtDatum.AddDays(1);
+      for (byte iTrPerDay = 1; iTrPerDay <= iTrainingsPerDayMax; iTrPerDay++) {
+        for (byte iType = 0; iType < iTrainingType.Length; iType++) {
+          for (byte i = 0; i < 3; i++) {
+            CornerkickManager.Main mn = new CornerkickManager.Main(iTrainingsPerDay: iTrPerDay);
+            mn.dtDatum = mn.dtDatum.AddDays(1);
 
-        CornerkickManager.User usr = new CornerkickManager.User();
-        mn.ltUser.Add(usr);
+            CornerkickManager.User usr = new CornerkickManager.User();
+            mn.ltUser.Add(usr);
 
-        // Create Club
-        CornerkickManager.Club clb = new CornerkickManager.Club();
-        clb.iId = 0;
-        clb.sName = "Team";
-        clb.iLand = 0;
-        clb.iDivision = 0;
-        clb.user = usr;
-        clb.training.iType[1] = 2; // Condition
-        clb.staff.iCondiTrainer = 4;
-        clb.buildings.bgGym.iLevel = 2;
-        mn.ltClubs.Add(clb);
+            // Create Club
+            CornerkickManager.Club clb = new CornerkickManager.Club();
+            clb.iId = 0;
+            clb.sName = "Team";
+            clb.iLand = 0;
+            clb.iDivision = 0;
+            clb.user = usr;
+            CornerkickManager.Main.Training.Unit tu = new CornerkickManager.Main.Training.Unit();
+            tu.dt = mn.dtDatum;
+            tu.iType = (sbyte)iTrainingType[iType];
+            clb.training.ltUnit.Add(tu); // Condition
+            clb.staff.iCondiTrainer = 4;
+            clb.buildings.bgGym.iLevel = 2;
+            mn.ltClubs.Add(clb);
 
-        usr.club = clb;
+            usr.club = clb;
 
-        CornerkickGame.Player pl = new CornerkickGame.Player();
-        pl.fCondition = fCondiIni;
-        pl.fFresh     = 0.8f;
-        pl.fMoral     = 0.8f;
-        pl.iClubId = 0;
-        pl.dtBirthday = mn.dtDatum.AddYears(-25);
-        clb.ltPlayer.Add(pl);
+            CornerkickGame.Player pl = new CornerkickGame.Player();
+            pl.fCondition = fCondiIni;
+            pl.fFresh     = 0.8f;
+            pl.fMoral     = 0.8f;
+            pl.iClubId = 0;
+            pl.dtBirthday = mn.dtDatum.AddYears(-25);
+            clb.ltPlayer.Add(pl);
 
-        if        (i == 1) { // Test trainer level 5
-          clb.staff.iCondiTrainer = 5;
-        } else if (i == 2) { // Test training camp
-          CornerkickManager.TrainingCamp.Camp cmp = mn.tcp.ltCamps[1];
-          mn.tcp.bookCamp(ref clb, cmp, mn.dtDatum.AddDays(-1), mn.dtDatum.AddDays(+1));
-        } else if (i == 3) { // Test doping
-          pl.doDoping(mn.ltDoping[1]);
-        }
+            if        (i == 1) { // Test trainer level 5
+              clb.staff.iCondiTrainer = 5;
+            } else if (i == 2) { // Test training camp
+              CornerkickManager.TrainingCamp.Camp cmp = mn.tcp.ltCamps[1];
+              mn.tcp.bookCamp(ref clb, cmp, mn.dtDatum.AddDays(-1), mn.dtDatum.AddDays(+1));
+            } else if (i == 3) { // Test doping
+              pl.doDoping(mn.ltDoping[1]);
+            }
 
-        CornerkickManager.TrainingCamp.Booking tcb = mn.tcp.getCurrentCamp(clb, mn.dtDatum);
+            CornerkickManager.TrainingCamp.Booking tcb = mn.tcp.getCurrentCamp(clb, mn.dtDatum);
 
-        float fCondiPre = pl.fCondition;
-        float fFreshPre = pl.fFresh;
-        float fMoodPre  = pl.fMoral;
+            float fCondiPre = pl.fCondition;
+            float fFreshPre = pl.fFresh;
+            float fMoodPre  = pl.fMoral;
 
-        mn.plr.doTraining(ref pl, mn.dtDatum, tcb);
+            for (byte iT = 0; iT < iTrPerDay; iT++) {
+              mn.plr.doTraining(ref pl, mn.dtDatum, iTrainingPerDay: iTrPerDay, campBooking: tcb);
+            }
 
-        // Test
-        if        (i == 0) { // Test common training increase of condi. (3.03%)
-          Assert.AreEqual(0.83173, pl.fCondition, 0.00001);
+            // Test
+            if        (i == 0) { // Test common training increase of condi. (3.03%)
+              if      (iTrainingType[iType] == 2) Assert.AreEqual(0.83173, pl.fCondition, fDeltaErr); // Condi
+              else if (iTrainingType[iType] == 1) Assert.AreEqual(0.78500, pl.fCondition, fDeltaErr); // Fresh
 
-          fCondi0 = pl.fCondition;
-          fFresh0 = pl.fFresh;
-          fMood0  = pl.fMoral;
-        } else if (i == 1) { // Test training increase with trainer level 5
-          Assert.AreEqual(1.0422665, pl.fCondition / fCondiPre, 0.00001);
-          Assert.AreEqual(0.9730000, pl.fFresh     / fFreshPre, 0.00001);
-          Assert.AreEqual(0.9921875, pl.fMoral     / fMoodPre,  0.00001);
+              fCondi0 = pl.fCondition;
+              fFresh0 = pl.fFresh;
+              fMood0  = pl.fMoral;
+            } else if (i == 1) { // Test training increase with trainer level 5
+              if (iTrainingType[iType] == 2) {
+                Assert.AreEqual(1.0422665, pl.fCondition / fCondiPre, fDeltaErr);
+                Assert.AreEqual(0.9730000, pl.fFresh     / fFreshPre, fDeltaErr);
+                Assert.AreEqual(0.9921875, pl.fMoral     / fMoodPre,  fDeltaErr);
 
-          Assert.AreEqual(1.0025042, pl.fCondition / fCondi0,   0.00001);
-          Assert.AreEqual(1.0000000, pl.fFresh     / fFresh0,   0.00001);
-          Assert.AreEqual(1.0000000, pl.fMoral     / fMood0,    0.00001);
-        } else if (i == 2) { // Test training increase with training camp
-          Assert.AreEqual(1.0603906, pl.fCondition / fCondiPre, 0.00001);
-          Assert.AreEqual(0.9792308, pl.fFresh     / fFreshPre, 0.00001);
-          Assert.AreEqual(0.9943182, pl.fMoral     / fMoodPre,  0.00001);
+                Assert.AreEqual(1.0025042, pl.fCondition / fCondi0,   fDeltaErr);
+                Assert.AreEqual(1.0000000, pl.fFresh     / fFresh0,   fDeltaErr);
+                Assert.AreEqual(1.0000000, pl.fMoral     / fMood0,    fDeltaErr);
+              }
+            } else if (i == 2) { // Test training increase with training camp
+              if (iTrainingType[iType] == 2) {
+                Assert.AreEqual(1.0603906, pl.fCondition / fCondiPre, fDeltaErr);
+                Assert.AreEqual(0.9792308, pl.fFresh     / fFreshPre, fDeltaErr);
+                Assert.AreEqual(0.9943182, pl.fMoral     / fMoodPre,  fDeltaErr);
 
-          Assert.AreEqual(1.0199369, pl.fCondition / fCondi0,   0.00001);
-          Assert.AreEqual(1.0064037, pl.fFresh     / fFresh0,   0.00001);
-          Assert.AreEqual(1.0021474, pl.fMoral     / fMood0,    0.00001);
-        } else if (i == 3) { // Test training increase with doping
-          Assert.AreEqual(1.0378909, pl.fCondition / fCondiPre, 0.00001);
-          Assert.AreEqual(1.0000000, pl.fFresh     / fFreshPre, 0.00001);
-          Assert.AreEqual(1.0018748, pl.fMoral     / fMoodPre,  0.00001);
+                Assert.AreEqual(1.0199369, pl.fCondition / fCondi0,   fDeltaErr);
+                Assert.AreEqual(1.0064037, pl.fFresh     / fFresh0,   fDeltaErr);
+                Assert.AreEqual(1.0021474, pl.fMoral     / fMood0,    fDeltaErr);
+              }
+            } else if (i == 3) { // Test training increase with doping
+              if (iTrainingType[iType] == 2) {
+                Assert.AreEqual(1.0378909, pl.fCondition / fCondiPre, fDeltaErr);
+                Assert.AreEqual(1.0000000, pl.fFresh     / fFreshPre, fDeltaErr);
+                Assert.AreEqual(1.0018748, pl.fMoral     / fMoodPre,  fDeltaErr);
 
-          Assert.AreEqual(1.0378909, pl.fCondition / fCondi0,   0.00001);
-          Assert.AreEqual(1.0000000, pl.fFresh     / fFresh0,   0.00001);
-          Assert.AreEqual(1.0018748, pl.fMoral     / fMood0,    0.00001);
+                Assert.AreEqual(1.0378909, pl.fCondition / fCondi0,   fDeltaErr);
+                Assert.AreEqual(1.0000000, pl.fFresh     / fFresh0,   fDeltaErr);
+                Assert.AreEqual(1.0018748, pl.fMoral     / fMood0,    fDeltaErr);
+              }
+            }
+          }
         }
       }
     }
