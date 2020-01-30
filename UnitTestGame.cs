@@ -204,6 +204,22 @@ namespace CornerkickUnitTest
     }
 
     [TestMethod]
+    public void TestPassMaxLength()
+    {
+      float[] fMaxPassLengthRel = new float[] { 0.43544f, 0.45531f, 0.47222f, 0.48701f, 0.50019f, 0.51211f };
+      CornerkickGame.Game gameTest = game.tl.getDefaultGame();
+
+      gameTest.doStart();
+
+      double fDistPitchX = CornerkickGame.Tool.getDistance(new Point(0, 0), new Point(gameTest.ptPitch.X, 0), gameTest.fConvertDist2Meter);
+      for (int iS = 4; iS < 10; iS++) {
+        double fMaxPassLength = CornerkickGame.Tool.getMaxPassLength(iS);
+        Debug.WriteLine(iS.ToString() + ": " + fMaxPassLength / fDistPitchX);
+        Assert.AreEqual(fMaxPassLengthRel[iS - 4], fMaxPassLength / fDistPitchX, 0.01);
+      }
+    }
+
+    [TestMethod]
     public void TestStealLowPass()
     {
       CornerkickGame.Game gameTest = game.tl.getDefaultGame(nPlStart: 3);
