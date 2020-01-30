@@ -709,7 +709,7 @@ namespace CornerkickUnitTest
               }
 
               // Test player positions
-              Assert.AreEqual(false, checkPlayerOnSamePosition(gameTest.player));
+              Assert.AreEqual(false, CornerkickGame.Game.checkPlayerOnSamePosition(gameTest.player));
 
               // Test player action array
               if (gameTest.ball.plAtBall != null) {
@@ -968,21 +968,6 @@ namespace CornerkickUnitTest
         fWf1 += fWfStep;
       }
 #endif
-    }
-
-    private bool checkPlayerOnSamePosition(CornerkickGame.Player[][] player)
-    {
-      for (byte iHA = 0; iHA < 2; iHA++) {
-        foreach (CornerkickGame.Player plr in player[iHA]) {
-          foreach (CornerkickGame.Player plr2 in player[1 - iHA]) {
-            if (plr == plr2) continue;
-            if (plr.ptPos == plr2.ptPos) return true;
-            //Assert.AreEqual(false, plr.ptPos == plr2.ptPos);
-          }
-        }
-      }
-
-      return false;
     }
 
     private void addShootToRange(float fShootDist, ref int[] iShootRange, byte iShootResult, ref int[] iShootRangeGoal)
