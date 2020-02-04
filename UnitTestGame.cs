@@ -1419,7 +1419,7 @@ namespace CornerkickUnitTest
         mn.doFormation(clb.iId);
 
         // Put last player on transferlist
-        mn.ui.putPlayerOnTransferlist(clb.ltPlayer[clb.ltPlayer.Count - 1].iId, 0);
+        mn.tr.putPlayerOnTransferlist(clb.ltPlayer[clb.ltPlayer.Count - 1].iId, 0);
       }
 
       DateTime dtLeagueStart;
