@@ -1781,7 +1781,7 @@ namespace CornerkickUnitTest
             float fMoodPre  = pl.fMoral;
 
             for (byte iT = 0; iT < iTrPerDay; iT++) {
-              mn.plr.doTraining(ref pl, mn.dtDatum, iTrainingPerDay: iTrPerDay, campBooking: tcb);
+              mn.plr.doTraining(ref pl, mn.dtDatum, campBooking: tcb);
             }
 
             // Test
