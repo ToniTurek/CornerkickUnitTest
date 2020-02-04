@@ -613,6 +613,7 @@ namespace CornerkickUnitTest
             for (int jj = 0; jj < iScorerField[j].Length; jj++) iScorerField[j][jj] = new int[5];
           }
           int iAssists = 0;
+          double fFreshDrop = 0.0;
 
 #if _ML
           double fWfPass = 1f;
@@ -677,6 +678,15 @@ namespace CornerkickUnitTest
                 }
               }
             }
+
+            // Get ave. freshness pre-game
+            double fFreshAvePre = 0.0;
+            for (byte iHA = 0; iHA < 2; iHA++) {
+              for (byte iPl = 0; iPl < gameTest.data.nPlStart; iPl++) {
+                fFreshAvePre += gameTest.player[iHA][iPl].fFresh;
+              }
+            }
+            fFreshAvePre /= (2 * gameTest.data.nPlStart);
 
             const int iBallCounterMax = 100;
             int iBallCounter = 0;
@@ -801,6 +811,16 @@ namespace CornerkickUnitTest
             Debug.WriteLine(" Game " + (iG + 1).ToString()  + ". Result: " + gameTest.data.team[0].iGoals.ToString() + ":" + gameTest.data.team[1].iGoals.ToString() + ", " + gameTest.data.tsMinute.TotalMinutes.ToString("0") + ":" + gameTest.data.tsMinute.Seconds.ToString("00"));
 #endif
 
+            // Get ave. freshness post-game
+            double fFreshAvePost = 0.0;
+            for (byte iHA = 0; iHA < 2; iHA++) {
+              for (byte iPl = 0; iPl < gameTest.data.nPlStart; iPl++) {
+                fFreshAvePost += gameTest.player[iHA][iPl].fFresh;
+              }
+            }
+            fFreshAvePost /= (2 * gameTest.data.nPlStart);
+            fFreshDrop += fFreshAvePre - fFreshAvePost;
+
             // Check player experience
             for (byte iHA = 0; iHA < 2; iHA++) {
               foreach (CornerkickGame.Player pl in gameTest.player[iHA]) Assert.AreEqual(true, pl.fExperience > 0f);
@@ -867,13 +887,12 @@ namespace CornerkickUnitTest
             if      (gameTest.data.team[0].iGoals > gameTest.data.team[1].iGoals) iV++;
             else if (gameTest.data.team[0].iGoals < gameTest.data.team[1].iGoals) iL++;
             else                                                                  iD++;
+
+            //Debug.WriteLine(gameTest.ai.iPassCounter.ToString() + ", " + (gameTest.ai.fPassTime / 1000.0).ToString("0.000s") + ", " + (gameTest.ai.fPassTime / gameTest.ai.iPassCounter).ToString("0.000ms/call"));
           } // for each game
           
           // Stop stopwatch
           sw.Stop();
-
-          fChanceGoalH /= nGames;
-          fChanceGoalA /= nGames;
 
           fShootDistH /= iShootsH;
           fShootDistA /= iShootsA;
@@ -911,14 +930,15 @@ namespace CornerkickUnitTest
 
           Trace.WriteLine("                Ave.  /  H/A");
           Trace.WriteLine("        goals: " + ((iGH          + iGA)          / (2.0 * nGames)).ToString("0.0000") + " / " + (iGH          / (double)iGA)         .ToString("0.0000"));
-          Trace.WriteLine("  chance goal: " + ((fChanceGoalH + fChanceGoalA) /  2.0          ).ToString("0.0000") + " / " + (fChanceGoalH /         fChanceGoalA).ToString("0.0000"));
+          Trace.WriteLine("  chance goal: " + ((fChanceGoalH + fChanceGoalA) / (2.0 * nGames)).ToString("0.0000") + " / " + (fChanceGoalH /         fChanceGoalA).ToString("0.0000"));
           Trace.WriteLine("       shoots: " + ((iShootsH     + iShootsA)     / (2.0 * nGames)).ToString("0.0000") + " / " + (iShootsH     / (double)iShootsA)    .ToString("0.0000"));
-          Trace.WriteLine("  shoot dist.: " + ((fShootDistH  + fShootDistA)  /  2.0          ).ToString("0.000")  + " / " + (fShootDistH  /         fShootDistA) .ToString("0.0000"));
+          Trace.WriteLine("  shoot dist.: " + ((fShootDistH  + fShootDistA)  / (2.0         )).ToString("0.000")  + " / " + (fShootDistH  /         fShootDistA) .ToString("0.0000"));
           Trace.WriteLine("        duels: " + ((iDuelH       + iDuelA)       / (2.0 * nGames)).ToString("0.000")  + " / " + (iDuelH       / (double)iDuelA)      .ToString("0.0000"));
           Trace.WriteLine("        steps: " + ((iStepsH      + iStepsA)      / (2.0 * nGames)).ToString("0 ")     + " / " + (iStepsH      / (double)iStepsA)     .ToString("0.0000"));
           Trace.WriteLine("   possession: " + ((iPossH       + iPossA)       / (2.0 * nGames)).ToString("0.0")    + " / " + (iPossH       / (double)iPossA)      .ToString("0.0000"));
           Trace.WriteLine("       passes: " + ((iPassH       + iPassA)       / (2.0 * nGames)).ToString("0.00")   + " / " + (iPassH       / (double)iPassA)      .ToString("0.0000"));
           Trace.WriteLine("     offsites: " + ((iOffsiteH    + iOffsiteA)    / (2.0 * nGames)).ToString("0.0000") + " / " + (iOffsiteH    / (double)iOffsiteA)   .ToString("0.0000"));
+          Trace.WriteLine("   fresh drop: " + (fFreshDrop                    / (      nGames)).ToString("0.000%"));
           Trace.WriteLine(" +------+------+------+------+------+------+------+------+");
           Trace.WriteLine(" |  KP  |  CD  |  SD  |  DM  |  SM  |  OM  |  SF  |  CF  |");
           Trace.WriteLine(" +------+------+------+------+------+------+------+------+");
