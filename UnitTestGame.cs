@@ -1014,6 +1014,51 @@ namespace CornerkickUnitTest
     }
 
     [TestMethod]
+    public void TestGameWithPlayerInjury()
+    {
+      CornerkickManager.Main mn = new CornerkickManager.Main(bContinuingTime: true);
+
+      CornerkickManager.Cup cup = new CornerkickManager.Cup(nGroups: 1, bGroupsTwoGames: true);
+      cup.iId = 1;
+      mn.ltCups.Add(cup);
+
+      /////////////////////////////////////////////////////////////////////
+      // Create Clubs
+      int nTeams = 2;
+      for (byte i = 0; i < nTeams; i++) {
+        CornerkickManager.Club clb = new CornerkickManager.Club();
+
+        clb.iId = i;
+        clb.sName = "Team" + (i + 1).ToString();
+        clb.ltTactic[0].formation = mn.ltFormationen[8];
+
+        CornerkickManager.User usr = new CornerkickManager.User();
+        clb.user = usr;
+        usr.club = clb;
+        mn.ltUser.Add(usr);
+
+        // Add player to club
+        addPlayerToClub(mn, ref clb);
+
+        mn.doFormation(clb.iId);
+
+        mn.ltClubs.Add(clb);
+        cup.ltClubs[0].Add(clb);
+      }
+
+      mn.calcMatchdays();
+      mn.drawCup(cup);
+
+      // Set injury to player at start
+      mn.ltClubs[0].ltPlayer[0].injury = new CornerkickGame.Player.Injury();
+      mn.ltClubs[0].ltPlayer[0].injury.fLength    = 100f;
+      mn.ltClubs[0].ltPlayer[0].injury.fLengthMax = 100f;
+
+      while (mn.next() < 99) {
+      }
+    }
+
+    [TestMethod]
     public void TestIO()
     {
       CornerkickManager.Main mng = new CornerkickManager.Main(bContinuingTime: true);
