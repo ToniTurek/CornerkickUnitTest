@@ -204,6 +204,22 @@ namespace CornerkickUnitTest
     }
 
     [TestMethod]
+    public void TestPassMaxLength()
+    {
+      float[] fMaxPassLengthRel = new float[] { 0.43544f, 0.45531f, 0.47222f, 0.48701f, 0.50019f, 0.51211f };
+      CornerkickGame.Game gameTest = game.tl.getDefaultGame();
+
+      gameTest.doStart();
+
+      double fDistPitchX = CornerkickGame.Tool.getDistance(new Point(0, 0), new Point(gameTest.ptPitch.X, 0), gameTest.fConvertDist2Meter);
+      for (int iS = 4; iS < 10; iS++) {
+        double fMaxPassLength = CornerkickGame.Tool.getMaxPassLength(iS);
+        Debug.WriteLine(iS.ToString() + ": " + fMaxPassLength / fDistPitchX);
+        Assert.AreEqual(fMaxPassLengthRel[iS - 4], fMaxPassLength / fDistPitchX, 0.01);
+      }
+    }
+
+    [TestMethod]
     public void TestStealLowPass()
     {
       CornerkickGame.Game gameTest = game.tl.getDefaultGame(nPlStart: 3);
@@ -597,6 +613,7 @@ namespace CornerkickUnitTest
             for (int jj = 0; jj < iScorerField[j].Length; jj++) iScorerField[j][jj] = new int[5];
           }
           int iAssists = 0;
+          double fFreshDrop = 0.0;
 
 #if _ML
           double fWfPass = 1f;
@@ -662,6 +679,15 @@ namespace CornerkickUnitTest
               }
             }
 
+            // Get ave. freshness pre-game
+            double fFreshAvePre = 0.0;
+            for (byte iHA = 0; iHA < 2; iHA++) {
+              for (byte iPl = 0; iPl < gameTest.data.nPlStart; iPl++) {
+                fFreshAvePre += gameTest.player[iHA][iPl].fFresh;
+              }
+            }
+            fFreshAvePre /= (2 * gameTest.data.nPlStart);
+
             const int iBallCounterMax = 100;
             int iBallCounter = 0;
             Point ptBall = gameTest.ball.ptPos;
@@ -709,7 +735,7 @@ namespace CornerkickUnitTest
               }
 
               // Test player positions
-              Assert.AreEqual(false, checkPlayerOnSamePosition(gameTest.player));
+              Assert.AreEqual(false, CornerkickGame.Game.checkPlayerOnSamePosition(gameTest.player));
 
               // Test player action array
               if (gameTest.ball.plAtBall != null) {
@@ -785,6 +811,16 @@ namespace CornerkickUnitTest
             Debug.WriteLine(" Game " + (iG + 1).ToString()  + ". Result: " + gameTest.data.team[0].iGoals.ToString() + ":" + gameTest.data.team[1].iGoals.ToString() + ", " + gameTest.data.tsMinute.TotalMinutes.ToString("0") + ":" + gameTest.data.tsMinute.Seconds.ToString("00"));
 #endif
 
+            // Get ave. freshness post-game
+            double fFreshAvePost = 0.0;
+            for (byte iHA = 0; iHA < 2; iHA++) {
+              for (byte iPl = 0; iPl < gameTest.data.nPlStart; iPl++) {
+                fFreshAvePost += gameTest.player[iHA][iPl].fFresh;
+              }
+            }
+            fFreshAvePost /= (2 * gameTest.data.nPlStart);
+            fFreshDrop += fFreshAvePre - fFreshAvePost;
+
             // Check player experience
             for (byte iHA = 0; iHA < 2; iHA++) {
               foreach (CornerkickGame.Player pl in gameTest.player[iHA]) Assert.AreEqual(true, pl.fExperience > 0f);
@@ -851,13 +887,12 @@ namespace CornerkickUnitTest
             if      (gameTest.data.team[0].iGoals > gameTest.data.team[1].iGoals) iV++;
             else if (gameTest.data.team[0].iGoals < gameTest.data.team[1].iGoals) iL++;
             else                                                                  iD++;
+
+            //Debug.WriteLine(gameTest.ai.iPassCounter.ToString() + ", " + (gameTest.ai.fPassTime / 1000.0).ToString("0.000s") + ", " + (gameTest.ai.fPassTime / gameTest.ai.iPassCounter).ToString("0.000ms/call"));
           } // for each game
           
           // Stop stopwatch
           sw.Stop();
-
-          fChanceGoalH /= nGames;
-          fChanceGoalA /= nGames;
 
           fShootDistH /= iShootsH;
           fShootDistA /= iShootsA;
@@ -895,14 +930,15 @@ namespace CornerkickUnitTest
 
           Trace.WriteLine("                Ave.  /  H/A");
           Trace.WriteLine("        goals: " + ((iGH          + iGA)          / (2.0 * nGames)).ToString("0.0000") + " / " + (iGH          / (double)iGA)         .ToString("0.0000"));
-          Trace.WriteLine("  chance goal: " + ((fChanceGoalH + fChanceGoalA) /  2.0          ).ToString("0.0000") + " / " + (fChanceGoalH /         fChanceGoalA).ToString("0.0000"));
+          Trace.WriteLine("  chance goal: " + ((fChanceGoalH + fChanceGoalA) / (2.0 * nGames)).ToString("0.0000") + " / " + (fChanceGoalH /         fChanceGoalA).ToString("0.0000"));
           Trace.WriteLine("       shoots: " + ((iShootsH     + iShootsA)     / (2.0 * nGames)).ToString("0.0000") + " / " + (iShootsH     / (double)iShootsA)    .ToString("0.0000"));
-          Trace.WriteLine("  shoot dist.: " + ((fShootDistH  + fShootDistA)  /  2.0          ).ToString("0.000")  + " / " + (fShootDistH  /         fShootDistA) .ToString("0.0000"));
+          Trace.WriteLine("  shoot dist.: " + ((fShootDistH  + fShootDistA)  / (2.0         )).ToString("0.000")  + " / " + (fShootDistH  /         fShootDistA) .ToString("0.0000"));
           Trace.WriteLine("        duels: " + ((iDuelH       + iDuelA)       / (2.0 * nGames)).ToString("0.000")  + " / " + (iDuelH       / (double)iDuelA)      .ToString("0.0000"));
           Trace.WriteLine("        steps: " + ((iStepsH      + iStepsA)      / (2.0 * nGames)).ToString("0 ")     + " / " + (iStepsH      / (double)iStepsA)     .ToString("0.0000"));
           Trace.WriteLine("   possession: " + ((iPossH       + iPossA)       / (2.0 * nGames)).ToString("0.0")    + " / " + (iPossH       / (double)iPossA)      .ToString("0.0000"));
           Trace.WriteLine("       passes: " + ((iPassH       + iPassA)       / (2.0 * nGames)).ToString("0.00")   + " / " + (iPassH       / (double)iPassA)      .ToString("0.0000"));
           Trace.WriteLine("     offsites: " + ((iOffsiteH    + iOffsiteA)    / (2.0 * nGames)).ToString("0.0000") + " / " + (iOffsiteH    / (double)iOffsiteA)   .ToString("0.0000"));
+          Trace.WriteLine("   fresh drop: " + (fFreshDrop                    / (      nGames)).ToString("0.000%"));
           Trace.WriteLine(" +------+------+------+------+------+------+------+------+");
           Trace.WriteLine(" |  KP  |  CD  |  SD  |  DM  |  SM  |  OM  |  SF  |  CF  |");
           Trace.WriteLine(" +------+------+------+------+------+------+------+------+");
@@ -970,26 +1006,56 @@ namespace CornerkickUnitTest
 #endif
     }
 
-    private bool checkPlayerOnSamePosition(CornerkickGame.Player[][] player)
-    {
-      for (byte iHA = 0; iHA < 2; iHA++) {
-        foreach (CornerkickGame.Player plr in player[iHA]) {
-          foreach (CornerkickGame.Player plr2 in player[1 - iHA]) {
-            if (plr == plr2) continue;
-            if (plr.ptPos == plr2.ptPos) return true;
-            //Assert.AreEqual(false, plr.ptPos == plr2.ptPos);
-          }
-        }
-      }
-
-      return false;
-    }
-
     private void addShootToRange(float fShootDist, ref int[] iShootRange, byte iShootResult, ref int[] iShootRangeGoal)
     {
       int iIx = Math.Min((int)(fShootDist / 5f), iShootRange.Length - 1);
       iShootRange[iIx]++;
       if (iShootResult == 1) iShootRangeGoal[iIx]++;
+    }
+
+    [TestMethod]
+    public void TestGameWithPlayerInjury()
+    {
+      CornerkickManager.Main mn = new CornerkickManager.Main(bContinuingTime: true);
+
+      CornerkickManager.Cup cup = new CornerkickManager.Cup(nGroups: 1, bGroupsTwoGames: true);
+      cup.iId = 1;
+      mn.ltCups.Add(cup);
+
+      /////////////////////////////////////////////////////////////////////
+      // Create Clubs
+      int nTeams = 2;
+      for (byte i = 0; i < nTeams; i++) {
+        CornerkickManager.Club clb = new CornerkickManager.Club();
+
+        clb.iId = i;
+        clb.sName = "Team" + (i + 1).ToString();
+        clb.ltTactic[0].formation = mn.ltFormationen[8];
+
+        CornerkickManager.User usr = new CornerkickManager.User();
+        clb.user = usr;
+        usr.club = clb;
+        mn.ltUser.Add(usr);
+
+        // Add player to club
+        addPlayerToClub(mn, ref clb);
+
+        mn.doFormation(clb.iId);
+
+        mn.ltClubs.Add(clb);
+        cup.ltClubs[0].Add(clb);
+      }
+
+      mn.calcMatchdays();
+      mn.drawCup(cup);
+
+      // Set injury to player at start
+      mn.ltClubs[0].ltPlayer[0].injury = new CornerkickGame.Player.Injury();
+      mn.ltClubs[0].ltPlayer[0].injury.fLength    = 100f;
+      mn.ltClubs[0].ltPlayer[0].injury.fLengthMax = 100f;
+
+      while (mn.next() < 99) {
+      }
     }
 
     [TestMethod]
@@ -1379,9 +1445,15 @@ namespace CornerkickUnitTest
         clb.iDivision = 0;
         clb.ltTactic[0].formation = mn.ltFormationen[8];
 
+        // Add player to club
         addPlayerToClub(mn, ref clb);
 
-        mn.fz.addSponsor(clb, true);
+        // Add stadium to club
+        clb.stadium.setStadiumToDefault();
+        clb.iAdmissionPrice = new int[3] { 10,  30, 100 };
+
+        // Add sponsor to club
+        mn.fz.addSponsor(clb, bForce: true);
 
         mn.ltClubs.Add(clb);
 
@@ -1392,7 +1464,7 @@ namespace CornerkickUnitTest
         mn.doFormation(clb.iId);
 
         // Put last player on transferlist
-        mn.ui.putPlayerOnTransferlist(clb.ltPlayer[clb.ltPlayer.Count - 1].iId, 0);
+        mn.tr.putPlayerOnTransferlist(clb.ltPlayer[clb.ltPlayer.Count - 1].iId, 0);
       }
 
       DateTime dtLeagueStart;
@@ -1440,6 +1512,15 @@ namespace CornerkickUnitTest
       mn.drawCup(league);
       mn.drawCup(cupWc);
 
+      // Set biggest stadium to WC game data
+      foreach (CornerkickManager.Cup.Matchday mdWc in cupWc.ltMatchdays) {
+        if (mdWc.ltGameData == null) break;
+
+        foreach (CornerkickGame.Game.Data gd in mdWc.ltGameData) {
+          gd.stadium = mn.st.getBiggestStadium();
+        }
+      }
+
       // Test construction
       CornerkickManager.UI.doConstruction(mn.ltClubs[0], 0, 2);
       CornerkickManager.UI.doConstruction(mn.ltClubs[0], 1, 2);
@@ -1452,9 +1533,27 @@ namespace CornerkickUnitTest
       float iDaysConstruct1 = 180;
       float iDaysConstruct2 = 120;
 
+      // Test player suspension
+      CornerkickGame.Player plSusp = mn.ltClubs[0].ltPlayer[0];
+      plSusp.iSuspension[0] = 5; // Suspend for 5 games
+
       // Perform next step until end of season
       while (mn.next() < 99) {
         Debug.WriteLine(mn.dtDatum.ToString());
+
+        // Set stadiums for semi-final and final games
+        for (byte iMd = 3; iMd < 5; iMd++) {
+          if (cupWc.ltMatchdays[iMd].ltGameData != null) {
+            for (byte iGd = 0; iGd < cupWc.ltMatchdays[iMd].ltGameData.Count; iGd++) cupWc.ltMatchdays[iMd].ltGameData[iGd].stadium = mn.st.getBiggestStadium();
+          }
+        }
+
+        // Test player suspension
+        for (byte iS = 0; iS < 5; iS++) {
+          if (mn.dtDatum.Equals(league.ltMatchdays[iS].dt.AddDays(1))) {
+            Assert.AreEqual(5 - iS - 1, plSusp.iSuspension[0]);
+          }
+        }
 
         if (mn.dtDatum.Hour == 0 && mn.dtDatum.Minute == 0) {
           // Test constructions
@@ -1502,6 +1601,10 @@ namespace CornerkickUnitTest
             string sResult = mn.ui.getResultString(gd);
             if (!string.IsNullOrEmpty(sResult)) sGame += " - " + sResult;
             Debug.WriteLine("  " + sGame);
+            
+            // Test spectators
+            Assert.AreEqual(true, gd.stadium.getSeats() > 0);
+            Assert.AreEqual(true, gd.iSpectators[0] + gd.iSpectators[1] + gd.iSpectators[2] > 0);
           }
         }
       }
