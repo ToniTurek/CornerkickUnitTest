@@ -1353,7 +1353,7 @@ namespace CornerkickUnitTest
 
       CornerkickManager.Main mn = new CornerkickManager.Main();
       
-      List<CornerkickGame.Game.Data> ltGameData = new List<CornerkickGame.Game.Data>();
+      List<CornerkickManager.Main.GameDataPlus> ltGameData = new List<CornerkickManager.Main.GameDataPlus>();
       for (int iG = 0; iG < nGames; iG++) {
         CornerkickGame.Game gameTest = game.tl.getDefaultGame(iClubIdStart: mn.ltClubs.Count, iPlIdStart: mn.ltPlayer.Count);
 
@@ -1372,7 +1372,9 @@ namespace CornerkickUnitTest
         mn.ltClubs.Add(clbH);
         mn.ltClubs.Add(clbA);
 
-        ltGameData.Add(gameTest.data);
+        CornerkickManager.Main.GameDataPlus gdp = new CornerkickManager.Main.GameDataPlus();
+        gdp.gd = gameTest.data;
+        ltGameData.Add(gdp);
       }
 
       bool bOk = mn.doGames(ltGameData, bBackground: true);
@@ -1384,12 +1386,12 @@ namespace CornerkickUnitTest
       int iV = 0;
       int iD = 0;
       int iL = 0;
-      foreach (CornerkickGame.Game.Data gd in ltGameData) {
-        iGH += gd.team[0].iGoals;
-        iGA += gd.team[1].iGoals;
+      foreach (CornerkickManager.Main.GameDataPlus gdp in ltGameData) {
+        iGH += gdp.gd.team[0].iGoals;
+        iGA += gdp.gd.team[1].iGoals;
 
-        if      (gd.team[0].iGoals > gd.team[1].iGoals) iV++;
-        else if (gd.team[0].iGoals < gd.team[1].iGoals) iL++;
+        if      (gdp.gd.team[0].iGoals > gdp.gd.team[1].iGoals) iV++;
+        else if (gdp.gd.team[0].iGoals < gdp.gd.team[1].iGoals) iL++;
         else                                            iD++;
       }
       Debug.WriteLine("Total: " + iGH.ToString() + ":" + iGA.ToString());
