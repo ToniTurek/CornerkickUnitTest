@@ -266,6 +266,29 @@ namespace CornerkickUnitTest
     }
 
     [TestMethod]
+    public void TestDuelPenalty()
+    {
+      for (byte iHA = 0; iHA < 2; iHA++) {
+        CornerkickGame.Game gameTest = game.tl.getDefaultGame();
+
+        gameTest.next();
+        while (gameTest.iStandardCounter > 0) gameTest.next();
+
+        CornerkickGame.Player plDef = gameTest.player[    iHA][ 1];
+        CornerkickGame.Player plOff = gameTest.player[1 - iHA][10];
+
+        plOff.ptPos = new Point(gameTest.ptPitch.X * iHA, 9);
+        gameTest.ball.ptPos = plOff.ptPos;
+        gameTest.ball.plAtBall = plOff;
+        plDef.ptPos.X = plOff.ptPos.X - (2 - (iHA * 4));
+
+        gameTest.doDuel(plDef, 3);
+
+        Assert.AreEqual(1, Math.Abs(gameTest.iStandard), "Standard is not penalty!");
+      }
+    }
+
+    [TestMethod]
     public void TestDuel2()
     {
       int iDuelH = 0;
