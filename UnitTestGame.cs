@@ -171,7 +171,7 @@ namespace CornerkickUnitTest
 
         gameTest.ball.plAtBall = gameTest.player[iHA][1];
 
-        List<CornerkickGame.AI.Receiver> ltReceiver = gameTest.ai.getReceiverList(gameTest.ball.plAtBall);
+        List<CornerkickGame.AI.Receiver> ltReceiver = gameTest.ai.getReceiverList(gameTest.ball.plAtBall, 0);
 
         /*
         Assert.AreEqual(7, ltReceiver .Count);
