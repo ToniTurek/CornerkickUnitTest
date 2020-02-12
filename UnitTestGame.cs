@@ -171,7 +171,7 @@ namespace CornerkickUnitTest
 
         gameTest.ball.plAtBall = gameTest.player[iHA][1];
 
-        List<CornerkickGame.AI.Receiver> ltReceiver = gameTest.ai.getReceiverList(gameTest.ball.plAtBall);
+        List<CornerkickGame.AI.Receiver> ltReceiver = gameTest.ai.getReceiverList(gameTest.ball.plAtBall, 0);
 
         /*
         Assert.AreEqual(7, ltReceiver .Count);
@@ -244,7 +244,7 @@ namespace CornerkickUnitTest
     }
 
     [TestMethod]
-    public void TestDuel()
+    public void TestDuelFreekick()
     {
       for (byte iHA = 0; iHA < 2; iHA++) {
         CornerkickGame.Game gameTest = game.tl.getDefaultGame();
@@ -255,6 +255,7 @@ namespace CornerkickUnitTest
         CornerkickGame.Player plDef = gameTest.player[    iHA][ 1];
         CornerkickGame.Player plOff = gameTest.player[1 - iHA][10];
 
+        if (iHA == 0) plOff.ptPos = new Point(7, 17);
         gameTest.ball.ptPos = plOff.ptPos;
         gameTest.ball.plAtBall = plOff;
         plDef.ptPos.X = plOff.ptPos.X - (2 - (iHA * 4));
@@ -262,6 +263,37 @@ namespace CornerkickUnitTest
         gameTest.doDuel(plDef, 3);
 
         Assert.AreEqual(2, Math.Abs(gameTest.iStandard), "Standard is not freekick!");
+
+        while (Math.Abs(gameTest.iStandard) == 2) {
+          gameTest.next();
+        }
+      }
+    }
+
+    [TestMethod]
+    public void TestDuelPenalty()
+    {
+      for (byte iHA = 0; iHA < 2; iHA++) {
+        CornerkickGame.Game gameTest = game.tl.getDefaultGame();
+
+        gameTest.next();
+        while (gameTest.iStandardCounter > 0) gameTest.next();
+
+        CornerkickGame.Player plDef = gameTest.player[    iHA][ 1];
+        CornerkickGame.Player plOff = gameTest.player[1 - iHA][10];
+
+        plOff.ptPos = new Point(gameTest.ptPitch.X * iHA, 9);
+        gameTest.ball.ptPos = plOff.ptPos;
+        gameTest.ball.plAtBall = plOff;
+        plDef.ptPos.X = plOff.ptPos.X - (2 - (iHA * 4));
+
+        gameTest.doDuel(plDef, 3);
+
+        Assert.AreEqual(1, Math.Abs(gameTest.iStandard), "Standard is not penalty!");
+
+        while (Math.Abs(gameTest.iStandard) == 1) {
+          gameTest.next();
+        }
       }
     }
 
@@ -475,7 +507,7 @@ namespace CornerkickUnitTest
     }
 
     [TestMethod]
-    public void TestPenalty()
+    public void TestPenaltySuccessRate()
     {
       const int nPenalties = 10000;
 
@@ -1353,7 +1385,7 @@ namespace CornerkickUnitTest
 
       CornerkickManager.Main mn = new CornerkickManager.Main();
       
-      List<CornerkickGame.Game.Data> ltGameData = new List<CornerkickGame.Game.Data>();
+      List<CornerkickManager.Main.GameDataPlus> ltGameData = new List<CornerkickManager.Main.GameDataPlus>();
       for (int iG = 0; iG < nGames; iG++) {
         CornerkickGame.Game gameTest = game.tl.getDefaultGame(iClubIdStart: mn.ltClubs.Count, iPlIdStart: mn.ltPlayer.Count);
 
@@ -1372,7 +1404,9 @@ namespace CornerkickUnitTest
         mn.ltClubs.Add(clbH);
         mn.ltClubs.Add(clbA);
 
-        ltGameData.Add(gameTest.data);
+        CornerkickManager.Main.GameDataPlus gdp = new CornerkickManager.Main.GameDataPlus();
+        gdp.gd = gameTest.data;
+        ltGameData.Add(gdp);
       }
 
       bool bOk = mn.doGames(ltGameData, bBackground: true);
@@ -1384,12 +1418,12 @@ namespace CornerkickUnitTest
       int iV = 0;
       int iD = 0;
       int iL = 0;
-      foreach (CornerkickGame.Game.Data gd in ltGameData) {
-        iGH += gd.team[0].iGoals;
-        iGA += gd.team[1].iGoals;
+      foreach (CornerkickManager.Main.GameDataPlus gdp in ltGameData) {
+        iGH += gdp.gd.team[0].iGoals;
+        iGA += gdp.gd.team[1].iGoals;
 
-        if      (gd.team[0].iGoals > gd.team[1].iGoals) iV++;
-        else if (gd.team[0].iGoals < gd.team[1].iGoals) iL++;
+        if      (gdp.gd.team[0].iGoals > gdp.gd.team[1].iGoals) iV++;
+        else if (gdp.gd.team[0].iGoals < gdp.gd.team[1].iGoals) iL++;
         else                                            iD++;
       }
       Debug.WriteLine("Total: " + iGH.ToString() + ":" + iGA.ToString());
