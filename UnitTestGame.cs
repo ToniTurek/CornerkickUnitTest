@@ -244,7 +244,7 @@ namespace CornerkickUnitTest
     }
 
     [TestMethod]
-    public void TestDuel()
+    public void TestDuelFreekick()
     {
       for (byte iHA = 0; iHA < 2; iHA++) {
         CornerkickGame.Game gameTest = game.tl.getDefaultGame();
@@ -255,6 +255,7 @@ namespace CornerkickUnitTest
         CornerkickGame.Player plDef = gameTest.player[    iHA][ 1];
         CornerkickGame.Player plOff = gameTest.player[1 - iHA][10];
 
+        if (iHA == 0) plOff.ptPos = new Point(7, 17);
         gameTest.ball.ptPos = plOff.ptPos;
         gameTest.ball.plAtBall = plOff;
         plDef.ptPos.X = plOff.ptPos.X - (2 - (iHA * 4));
@@ -262,6 +263,10 @@ namespace CornerkickUnitTest
         gameTest.doDuel(plDef, 3);
 
         Assert.AreEqual(2, Math.Abs(gameTest.iStandard), "Standard is not freekick!");
+
+        while (Math.Abs(gameTest.iStandard) == 2) {
+          gameTest.next();
+        }
       }
     }
 
@@ -285,6 +290,10 @@ namespace CornerkickUnitTest
         gameTest.doDuel(plDef, 3);
 
         Assert.AreEqual(1, Math.Abs(gameTest.iStandard), "Standard is not penalty!");
+
+        while (Math.Abs(gameTest.iStandard) == 1) {
+          gameTest.next();
+        }
       }
     }
 
@@ -498,7 +507,7 @@ namespace CornerkickUnitTest
     }
 
     [TestMethod]
-    public void TestPenalty()
+    public void TestPenaltySuccessRate()
     {
       const int nPenalties = 10000;
 
