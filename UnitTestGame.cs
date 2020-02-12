@@ -1436,7 +1436,7 @@ namespace CornerkickUnitTest
     {
       const int iLand = 36;
 
-      CornerkickManager.Main mn = new CornerkickManager.Main(bContinuingTime: true);
+      CornerkickManager.Main mn = new CornerkickManager.Main(bContinuingTime: true, iTrainingsPerDay: 2, iTrainingsPerDayMax: 3);
 
       //mn.setNewSeason();
 
