@@ -855,7 +855,7 @@ namespace CornerkickUnitTest
 
             // Check player experience
             for (byte iHA = 0; iHA < 2; iHA++) {
-              foreach (CornerkickGame.Player pl in gameTest.player[iHA]) Assert.AreEqual(true, pl.fExperience > 0f);
+              for (byte iPl = 0; iPl < gameTest.data.nPlStart; iPl++) Assert.AreEqual(true, gameTest.player[iHA][iPl].fExperience > 0f);
             }
 
             // Count data
