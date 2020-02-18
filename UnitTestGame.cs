@@ -752,7 +752,7 @@ namespace CornerkickUnitTest
             while (gameTest.next() > 0) {
               if (iShootRes >= 0) {
                 if (iShootRes == 4) { // Cornerkick
-                  Assert.AreEqual(3, Math.Abs(gameTest.iStandard));
+                  Assert.AreEqual(3, Math.Abs(gameTest.iStandard), "Standard is not cornerkick but " + Math.Abs(gameTest.iStandard).ToString());
                   Assert.AreEqual(true, gameTest.ball.ptPos.X <= 0 || gameTest.ball.ptPos.X >= gameTest.ptPitch.X);
                 }
               }
