@@ -877,7 +877,11 @@ namespace CornerkickUnitTest
 
             // Check player experience
             for (byte iHA = 0; iHA < 2; iHA++) {
-              for (byte iPl = 0; iPl < gameTest.data.nPlStart; iPl++) Assert.AreEqual(true, gameTest.player[iHA][iPl].fExperience > 0f);
+              for (byte iPl = 0; iPl < gameTest.player[iHA].Length; iPl++) {
+                CornerkickGame.Player plExp = gameTest.player[iHA][iPl];
+
+                if (plExp.statGame.iStat[28] > 1) Assert.AreEqual(true, plExp.fExperience > 0f, plExp.sName + " has not gained experience!");
+              }
             }
 
             // Count data
