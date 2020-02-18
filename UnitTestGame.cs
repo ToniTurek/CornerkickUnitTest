@@ -37,6 +37,24 @@ namespace CornerkickUnitTest
     }
 
     [TestMethod]
+    public void TestPlayerOutsidePitch()
+    {
+      CornerkickGame.Game gameTest = game.tl.getDefaultGame();
+      gameTest.next();
+      while (gameTest.iStandard != 0) gameTest.next();
+
+      CornerkickGame.Player pl = gameTest.player[0][0];
+
+      // not offsite
+      pl.ptPos = new Point(-3, 0);
+
+      gameTest.next();
+      gameTest.next();
+
+      Assert.AreEqual(true, pl.ptPos.X >= 0, "Player is outside pitch");
+    }
+
+    [TestMethod]
     public void TestShoot()
     {
       string[] sHA = { "Home", "Away" };
