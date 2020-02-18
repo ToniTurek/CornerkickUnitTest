@@ -1973,18 +1973,56 @@ namespace CornerkickUnitTest
     [TestMethod]
     public void TestPlayerValue()
     {
-      CornerkickManager.Main mn  = new CornerkickManager.Main();
+      CornerkickManager.Main mn = new CornerkickManager.Main();
 
       CornerkickGame.Player pl = new CornerkickGame.Player(7);
 
       // Player value should be 2.290 mio €
       pl.fExperiencePos[10] = 1.0f;
-      Assert.AreEqual(2290, pl.getValue(25f, 1000),  0.00001);
+      Assert.AreEqual(2290, pl.getValue(25f, 1000), 0.00001);
 
       // Player value should be 3.022 mio €
       pl.fExperiencePos[ 8] = 0.5f;
       pl.fExperiencePos[ 9] = 0.5f;
-      Assert.AreEqual(3022, pl.getValue(25f, 1000),  0.00001);
+      Assert.AreEqual(3022, pl.getValue(25f, 1000), 0.00001);
+    }
+
+    [TestMethod]
+    public void TestSetPlayerIndTraining()
+    {
+      CornerkickManager.Main mn = new CornerkickManager.Main();
+
+      const int nTests = 10000;
+      int iCounterReaction = 0;
+      int iCounterShootAcc = 0;
+      for (int i = 0; i < nTests; i++) {
+        // Keeper (Kp)
+        CornerkickGame.Player plKp = new CornerkickGame.Player(7);
+        for (byte iP = 0; iP < plKp.fExperiencePos.Length; iP++) plKp.fExperiencePos[iP] = 0.3f;
+        plKp.fExperiencePos[0] = 1.0f; // Keeper
+
+        byte iIndTrKp = CornerkickManager.Player.getTrainingInd(plKp);
+        if (iIndTrKp == 13) iCounterReaction++;
+
+        // Should never be ...
+        Assert.AreEqual(false, iIndTrKp ==  2); // ... duel offence
+        Assert.AreEqual(false, iIndTrKp == 10); // ... header
+
+        // Center foreward (CF)
+        CornerkickGame.Player plCF = new CornerkickGame.Player(7);
+        for (byte iP = 0; iP < plCF.fExperiencePos.Length; iP++) plCF.fExperiencePos[iP] = 0.3f;
+        plCF.fExperiencePos[10] = 1.0f; // CF
+
+        byte iIndTrCF = CornerkickManager.Player.getTrainingInd(plCF);
+        if (iIndTrCF ==  9) iCounterShootAcc++;
+
+        // Should never be ...
+        Assert.AreEqual(false, iIndTrCF == 13); // ... reaction
+        Assert.AreEqual(false, iIndTrCF == 15); // ... catch
+      }
+
+      Assert.AreEqual(4.0 / 21.0, iCounterReaction / (float)nTests, 0.01); // Reaction
+      Assert.AreEqual(5.0 / 38.0, iCounterShootAcc / (float)nTests, 0.01); // Shoot acc.
     }
 
     [TestMethod]
@@ -1994,7 +2032,7 @@ namespace CornerkickUnitTest
       const int iContractLength = 2;
       const int iGamesPerSeason = 30;
 
-      CornerkickManager.Main mn  = new CornerkickManager.Main();
+      CornerkickManager.Main mn = new CornerkickManager.Main();
 
       CornerkickManager.Club clb = new CornerkickManager.Club();
       CornerkickGame.Player pl = new CornerkickGame.Player(7);
