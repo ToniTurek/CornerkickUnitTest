@@ -283,8 +283,12 @@ namespace CornerkickUnitTest
         Assert.AreEqual(2, Math.Abs(gameTest.iStandard), "Standard is not freekick!");
 
         while (Math.Abs(gameTest.iStandard) == 2) {
+          if (iHA == 0) Assert.AreEqual(                     1, gameTest.player[iHA][0].ptPos.X);
+          else          Assert.AreEqual(gameTest.ptPitch.X - 1, gameTest.player[iHA][0].ptPos.X);
           gameTest.next();
         }
+
+        gameTest.next();
       }
     }
 
