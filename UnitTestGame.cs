@@ -614,6 +614,7 @@ namespace CornerkickUnitTest
     {
       const int nGames = 1000;
       const float fRefereeCorruptHome = 0f;
+      const bool bInjuriesPossible = true;
 
       Random rnd = new Random();
 
@@ -668,6 +669,8 @@ namespace CornerkickUnitTest
           }
           int iAssists = 0;
           double fFreshDrop = 0.0;
+          int iInjuries = 0;
+          int iInjuriesPlayer = 0;
 
 #if _ML
           double fWfPass = 1f;
@@ -678,7 +681,7 @@ namespace CornerkickUnitTest
           for (int iG = 0; iG < nGames; iG++) {
             // Create default game
             CornerkickGame.Game gameTest = game.tl.getDefaultGame();
-            gameTest.data.bInjuriesPossible = false;
+            gameTest.data.bInjuriesPossible = bInjuriesPossible;
             gameTest.data.bCardsPossible = false;
 
             // Shuffle formations
@@ -947,6 +950,16 @@ namespace CornerkickUnitTest
             else                                                                  iD++;
 
             //Debug.WriteLine(gameTest.ai.iPassCounter.ToString() + ", " + (gameTest.ai.fPassTime / 1000.0).ToString("0.000s") + ", " + (gameTest.ai.fPassTime / gameTest.ai.iPassCounter).ToString("0.000ms/call"));
+
+            // Get injuries
+            for (byte iHA = 0; iHA < 2; iHA++) {
+              for (byte iPl = 0; iPl < gameTest.player[iHA].Length; iPl++) {
+                if (gameTest.player[iHA][iPl] == null) continue;
+
+                if (gameTest.player[iHA][iPl].injury != null) iInjuries++;
+                iInjuriesPlayer++;
+              }
+            }
           } // for each game
           
           // Stop stopwatch
@@ -997,6 +1010,7 @@ namespace CornerkickUnitTest
           Trace.WriteLine("       passes: " + ((iPassH       + iPassA)       / (2.0 * nGames)).ToString("0.00")   + " / " + (iPassH       / (double)iPassA)      .ToString("0.0000"));
           Trace.WriteLine("     offsites: " + ((iOffsiteH    + iOffsiteA)    / (2.0 * nGames)).ToString("0.0000") + " / " + (iOffsiteH    / (double)iOffsiteA)   .ToString("0.0000"));
           Trace.WriteLine("   fresh drop: " + (fFreshDrop                    / (      nGames)).ToString("0.000%"));
+          Trace.WriteLine("     injuries: " + (iInjuries / (double)iInjuriesPlayer).ToString("0.000%"));
           Trace.WriteLine(" +------+------+------+------+------+------+------+------+");
           Trace.WriteLine(" |  KP  |  CD  |  SD  |  DM  |  SM  |  OM  |  SF  |  CF  |");
           Trace.WriteLine(" +------+------+------+------+------+------+------+------+");
