@@ -51,7 +51,7 @@ namespace CornerkickUnitTest
       gameTest.next();
       gameTest.next();
 
-      Assert.AreEqual(true, pl.ptPos.X >= 0, "Player is outside pitch");
+      Assert.AreEqual(true, pl.ptPos.X >= 0, "Player is outside pitch: pl.X=" + pl.ptPos.X);
     }
 
     [TestMethod]
@@ -839,13 +839,15 @@ namespace CornerkickUnitTest
                   int iFieldPosX = ptFieldPos.X / 10;
                   if (iFieldPosX >= iScorerField[0].Length) iFieldPosX = iScorerField[0].Length - 1;
 
-                  int iFieldPosY = 2;
-                  if       (ptFieldPos.Y <= -gameTest.ptPitch.Y * (4f / 5f)) iFieldPosY = 0;
-                  else if  (ptFieldPos.Y <= -gameTest.ptPitch.Y * (2f / 5f)) iFieldPosY = 1;
-                  else if  (ptFieldPos.Y >= +gameTest.ptPitch.Y * (4f / 5f)) iFieldPosY = 4;
-                  else if  (ptFieldPos.Y >= +gameTest.ptPitch.Y * (2f / 5f)) iFieldPosY = 3;
+                  if (iFieldPosX >= 0) {
+                    int iFieldPosY = 2;
+                    if       (ptFieldPos.Y <= -gameTest.ptPitch.Y * (4f / 5f)) iFieldPosY = 0;
+                    else if  (ptFieldPos.Y <= -gameTest.ptPitch.Y * (2f / 5f)) iFieldPosY = 1;
+                    else if  (ptFieldPos.Y >= +gameTest.ptPitch.Y * (4f / 5f)) iFieldPosY = 4;
+                    else if  (ptFieldPos.Y >= +gameTest.ptPitch.Y * (2f / 5f)) iFieldPosY = 3;
                 
-                  iScorerField[jj][iFieldPosX][iFieldPosY]++;
+                    iScorerField[jj][iFieldPosX][iFieldPosY]++;
+                  }
 
                   if (jj > 0) iAssists++;
                 }
@@ -977,7 +979,7 @@ namespace CornerkickUnitTest
           Debug.WriteLine("OOO        Statistics        OOO");
           Debug.WriteLine("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
           
-          Trace.Listeners.Add(new TextWriterTraceListener(mn.sHomeDir + "/Test_Results.txt"));
+          Trace.Listeners.Add(new TextWriterTraceListener(CornerkickManager.Main.sHomeDir + "/Test_Results.txt"));
           Trace.AutoFlush = true;
 
           Trace.WriteLine("");
@@ -1134,12 +1136,12 @@ namespace CornerkickUnitTest
     public void TestIO()
     {
       CornerkickManager.Main mng = new CornerkickManager.Main(bContinuingTime: true);
-      mng.sHomeDir = Path.Combine(mng.sHomeDir, "io_test");
+      CornerkickManager.Main.sHomeDir = Path.Combine(CornerkickManager.Main.sHomeDir, "io_test");
 #if _ANSYS
-      mng.sHomeDir = Path.Combine("D:\\scratch\\u522245\\test\\io_test");
+      CornerkickManager.Main.sHomeDir = @"D:\\scratch\\u522245\\test\\io_test";
 #endif
 
-      string sLoadFile = Path.Combine(mng.sHomeDir, "test");
+      string sLoadFile = Path.Combine(CornerkickManager.Main.sHomeDir, "test");
 #if _ANSYS
       if (Directory.Exists(sLoadFile)) {
 #else
@@ -1224,8 +1226,11 @@ namespace CornerkickUnitTest
     public void TestIOGameData()
     {
       CornerkickManager.Main mn = new CornerkickManager.Main();
-      mn.sHomeDir = Path.Combine(mn.sHomeDir, "test");
-      if (!Directory.Exists(mn.sHomeDir)) Directory.CreateDirectory(mn.sHomeDir);
+      CornerkickManager.Main.sHomeDir = Path.Combine(CornerkickManager.Main.sHomeDir, "test");
+#if _ANSYS
+      CornerkickManager.Main.sHomeDir = @"D:\\scratch\\u522245\\test";
+#endif
+      if (!Directory.Exists(CornerkickManager.Main.sHomeDir)) Directory.CreateDirectory(CornerkickManager.Main.sHomeDir);
 
       CornerkickGame.Game gameTest = game.tl.getDefaultGame();
       for (byte iHA = 0; iHA < 2; iHA++) {
@@ -1238,7 +1243,7 @@ namespace CornerkickUnitTest
       bool bOk = mn.doGame(gameTest, bAlwaysWriteToDisk: true, bWaitUntilGameIsSaved: true);
       Assert.AreEqual(true, bOk);
 
-      DirectoryInfo diGames = new DirectoryInfo(@Path.Combine(mn.sHomeDir, "save", "games"));
+      DirectoryInfo diGames = new DirectoryInfo(@Path.Combine(CornerkickManager.Main.sHomeDir, "save", "games"));
       FileInfo[] fiGames = diGames.GetFiles("*.ckgx");
       while (fiGames.Length == 0) {
         fiGames = diGames.GetFiles("*.ckgx");
@@ -1249,7 +1254,7 @@ namespace CornerkickUnitTest
 
         for (byte iS = 0; iS < iSeats.Length; iS++) Assert.AreEqual(iSeats[iS], gameTest.data.stadium.getSeats(iS));
 
-        Directory.Delete(mn.sHomeDir, true);
+        Directory.Delete(CornerkickManager.Main.sHomeDir, true);
       }      
     }
 
@@ -1359,7 +1364,7 @@ namespace CornerkickUnitTest
       CornerkickGame.Player[][] pl1 = new CornerkickGame.Player[2][];
 
       for (byte iHA = 0; iHA < 2; iHA++) {
-        pl1[iHA] = new CornerkickGame.Player[game0.data.nPlStart];
+        pl1[iHA] = new CornerkickGame.Player[game0.player[iHA].Length];
         for (byte iP = 0; iP < game0.data.nPlStart; iP++) {
           pl1[iHA][iP] = game0.player[iHA][iP].Clone(true);
         }
@@ -1468,6 +1473,7 @@ namespace CornerkickUnitTest
     [TestMethod]
     public void TestMatchdays()
     {
+      const bool bTestIO = false;
       const int iLand = 36;
 
       CornerkickManager.Main mn = new CornerkickManager.Main(bContinuingTime: true, iTrainingsPerDay: 2, iTrainingsPerDayMax: 3);
@@ -1555,7 +1561,7 @@ namespace CornerkickUnitTest
         CornerkickManager.Club clbNat = new CornerkickManager.Club();
         clbNat.bNation = true;
         clbNat.iId = mn.ltClubs.Count;
-        clbNat.sName = mn.sLand[iN];
+        clbNat.sName = CornerkickManager.Main.sLand[iN];
         clbNat.iLand = iN;
         clbNat.ltTactic[0].formation = mn.ltFormationen[8];
 
@@ -1590,12 +1596,12 @@ namespace CornerkickUnitTest
       }
 
       // Test construction
-      CornerkickManager.UI.doConstruction(mn.ltClubs[0], 0, 2);
-      CornerkickManager.UI.doConstruction(mn.ltClubs[0], 1, 2);
-      CornerkickManager.UI.doConstruction(mn.ltClubs[0], 2, 2);
-      CornerkickManager.UI.doConstruction(mn.ltClubs[0], 3, 2);
-      CornerkickManager.UI.doConstruction(mn.ltClubs[0], 4, 2);
-      CornerkickManager.UI.doConstruction(mn.ltClubs[0], 5, 2);
+      CornerkickManager.UI.doConstruction(mn.ltClubs[0], 0, 2, mn.dtDatum, "");
+      CornerkickManager.UI.doConstruction(mn.ltClubs[0], 1, 2, mn.dtDatum, "");
+      CornerkickManager.UI.doConstruction(mn.ltClubs[0], 2, 2, mn.dtDatum, "");
+      CornerkickManager.UI.doConstruction(mn.ltClubs[0], 3, 2, mn.dtDatum, "");
+      CornerkickManager.UI.doConstruction(mn.ltClubs[0], 4, 2, mn.dtDatum, "");
+      CornerkickManager.UI.doConstruction(mn.ltClubs[0], 5, 2, mn.dtDatum, "");
 
       int iDayConstruct = 0;
       float iDaysConstruct1 = 180;
@@ -1698,7 +1704,7 @@ namespace CornerkickUnitTest
       Assert.AreEqual(true, cupWc.ltMatchdays[4].ltGameData[0].team[0].iGoals != cupWc.ltMatchdays[4].ltGameData[0].team[1].iGoals);
 
       // save/load
-      testIO(mn);
+      if (bTestIO) testIO(mn);
     }
 
     private void testIO(CornerkickManager.Main mng)
@@ -1849,7 +1855,7 @@ namespace CornerkickUnitTest
             float fMoodPre  = pl.fMoral;
 
             for (byte iT = 0; iT < iTrPerDay; iT++) {
-              mn.plr.doTraining(ref pl, mn.dtDatum, campBooking: tcb);
+              mn.plr.doTraining(ref pl, tu.iType, mn.dtDatum, campBooking: tcb);
             }
 
             // Test
@@ -2021,6 +2027,7 @@ namespace CornerkickUnitTest
         // Should never be ...
         Assert.AreEqual(false, iIndTrKp ==  2); // ... duel offence
         Assert.AreEqual(false, iIndTrKp == 10); // ... header
+        Assert.AreEqual(false, iIndTrKp == 11); // ... free-kick
 
         // Center foreward (CF)
         CornerkickGame.Player plCF = new CornerkickGame.Player(7);
