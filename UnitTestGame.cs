@@ -1171,7 +1171,7 @@ namespace CornerkickUnitTest
           // League
           CornerkickManager.Cup league = mng.tl.getCup(1, 36);
           if (league != null) {
-            List<CornerkickManager.Tool.TableItem> table = CornerkickManager.Tool.getLeagueTable(league);
+            List<CornerkickManager.Cup.TableItem> table = league.getTable();
             Assert.AreEqual(true, table[0].iGoals > 0);
             Assert.AreEqual(true, table[0].iGUV[0] > table[0].iGUV[2]);
           }
@@ -1695,7 +1695,7 @@ namespace CornerkickUnitTest
       Debug.WriteLine("End of season: " + mn.dtSeasonEnd.ToString());
 
       // League
-      List<CornerkickManager.Tool.TableItem> table = CornerkickManager.Tool.getLeagueTable(league);
+      List<CornerkickManager.Cup.TableItem> table = league.getTable();
       Assert.AreEqual(true, table.Count == nTeams);
       Assert.AreEqual(true, table[0].iGoals > 0);
       Assert.AreEqual(true, table[0].iGUV[0] > table[0].iGUV[2]);
