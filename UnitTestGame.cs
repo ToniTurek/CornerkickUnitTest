@@ -2133,6 +2133,10 @@ namespace CornerkickUnitTest
       iSpec = (int)(iSpecPotVIP * CornerkickManager.Finance.getCustomerReductionFactor(iToilets, CornerkickManager.Stadium.iFeatureSpecReqToilets * CornerkickManager.Stadium.iSpecReqFac[2], iSpecPotVIP));
       Assert.AreEqual(900, iSpec);
 
+      // 99%
+      iToilets = (4 * iToiletsReq) / 4;
+      Assert.AreEqual(960.75, (iSpecPotVIP + 1) * CornerkickManager.Finance.getCustomerReductionFactor(iToilets, CornerkickManager.Stadium.iFeatureSpecReqToilets * CornerkickManager.Stadium.iSpecReqFac[2], iSpecPotVIP + 1), 0.001);
+
       // 100%
       iToilets = (4 * iToiletsReq) / 4;
       iSpec = (int)(iSpecPotVIP * CornerkickManager.Finance.getCustomerReductionFactor(iToilets, CornerkickManager.Stadium.iFeatureSpecReqToilets * CornerkickManager.Stadium.iSpecReqFac[2], iSpecPotVIP));
