@@ -2104,5 +2104,40 @@ namespace CornerkickUnitTest
       Assert.AreEqual(0.620, fMood, 0.01);
     }
 
+    [TestMethod]
+    public void TestToilets()
+    {
+      const int iSpecPotVIP = 960;
+      int iToilets = 0;
+      int iSpec = 0;
+
+      int iToiletsReq = iSpecPotVIP / (CornerkickManager.Stadium.iFeatureSpecReqToilets * CornerkickManager.Stadium.iSpecReqFac[2]);
+
+      // 0%
+      iToilets = 0;
+      iSpec = (int)(iSpecPotVIP * CornerkickManager.Finance.getCustomerReductionFactor(iToilets, CornerkickManager.Stadium.iFeatureSpecReqToilets * CornerkickManager.Stadium.iSpecReqFac[2], iSpecPotVIP));
+      Assert.AreEqual(720, iSpec);
+
+      // 25%
+      iToilets = (1 * iToiletsReq) / 4;
+      iSpec = (int)(iSpecPotVIP * CornerkickManager.Finance.getCustomerReductionFactor(iToilets, CornerkickManager.Stadium.iFeatureSpecReqToilets * CornerkickManager.Stadium.iSpecReqFac[2], iSpecPotVIP));
+      Assert.AreEqual(780, iSpec);
+
+      // 50%
+      iToilets = (2 * iToiletsReq) / 4;
+      iSpec = (int)(iSpecPotVIP * CornerkickManager.Finance.getCustomerReductionFactor(iToilets, CornerkickManager.Stadium.iFeatureSpecReqToilets * CornerkickManager.Stadium.iSpecReqFac[2], iSpecPotVIP));
+      Assert.AreEqual(840, iSpec);
+
+      // 75%
+      iToilets = (3 * iToiletsReq) / 4;
+      iSpec = (int)(iSpecPotVIP * CornerkickManager.Finance.getCustomerReductionFactor(iToilets, CornerkickManager.Stadium.iFeatureSpecReqToilets * CornerkickManager.Stadium.iSpecReqFac[2], iSpecPotVIP));
+      Assert.AreEqual(900, iSpec);
+
+      // 100%
+      iToilets = (4 * iToiletsReq) / 4;
+      iSpec = (int)(iSpecPotVIP * CornerkickManager.Finance.getCustomerReductionFactor(iToilets, CornerkickManager.Stadium.iFeatureSpecReqToilets * CornerkickManager.Stadium.iSpecReqFac[2], iSpecPotVIP));
+      Assert.AreEqual(960, iSpec);
+    }
+
   }
 }
