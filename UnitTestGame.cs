@@ -987,7 +987,7 @@ namespace CornerkickUnitTest
           Debug.WriteLine("OOO        Statistics        OOO");
           Debug.WriteLine("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
           
-          Trace.Listeners.Add(new TextWriterTraceListener(CornerkickManager.Main.sHomeDir + "/Test_Results.txt"));
+          Trace.Listeners.Add(new TextWriterTraceListener(mn.settings.sHomeDir + "/Test_Results.txt"));
           Trace.AutoFlush = true;
 
           Trace.WriteLine("");
@@ -1148,12 +1148,12 @@ namespace CornerkickUnitTest
     public void TestIO()
     {
       CornerkickManager.Main mng = new CornerkickManager.Main(bContinuingTime: true);
-      CornerkickManager.Main.sHomeDir = Path.Combine(CornerkickManager.Main.sHomeDir, "io_test");
+      mng.settings.sHomeDir = Path.Combine(mng.settings.sHomeDir, "io_test");
 #if _ANSYS
       CornerkickManager.Main.sHomeDir = @"D:\\scratch\\u522245\\test\\io_test";
 #endif
 
-      string sLoadFile = Path.Combine(CornerkickManager.Main.sHomeDir, "test");
+      string sLoadFile = Path.Combine(mng.settings.sHomeDir, "test");
 #if _ANSYS
       if (Directory.Exists(sLoadFile)) {
 #else
@@ -1238,11 +1238,11 @@ namespace CornerkickUnitTest
     public void TestIOGameData()
     {
       CornerkickManager.Main mn = new CornerkickManager.Main();
-      CornerkickManager.Main.sHomeDir = Path.Combine(CornerkickManager.Main.sHomeDir, "test");
+      mn.settings.sHomeDir = Path.Combine(mn.settings.sHomeDir, "test");
 #if _ANSYS
       CornerkickManager.Main.sHomeDir = @"D:\\scratch\\u522245\\test";
 #endif
-      if (!Directory.Exists(CornerkickManager.Main.sHomeDir)) Directory.CreateDirectory(CornerkickManager.Main.sHomeDir);
+      if (!Directory.Exists(mn.settings.sHomeDir)) Directory.CreateDirectory(mn.settings.sHomeDir);
 
       CornerkickGame.Game gameTest = game.tl.getDefaultGame();
       for (byte iHA = 0; iHA < 2; iHA++) {
@@ -1255,7 +1255,7 @@ namespace CornerkickUnitTest
       bool bOk = mn.doGame(gameTest, bAlwaysWriteToDisk: true, bWaitUntilGameIsSaved: true);
       Assert.AreEqual(true, bOk);
 
-      DirectoryInfo diGames = new DirectoryInfo(@Path.Combine(CornerkickManager.Main.sHomeDir, "save", "games"));
+      DirectoryInfo diGames = new DirectoryInfo(@Path.Combine(mn.settings.sHomeDir, "save", "games"));
       FileInfo[] fiGames = diGames.GetFiles("*.ckgx");
       while (fiGames.Length == 0) {
         fiGames = diGames.GetFiles("*.ckgx");
@@ -1266,7 +1266,7 @@ namespace CornerkickUnitTest
 
         for (byte iS = 0; iS < iSeats.Length; iS++) Assert.AreEqual(iSeats[iS], gameTest.data.stadium.getSeats(iS));
 
-        Directory.Delete(CornerkickManager.Main.sHomeDir, true);
+        Directory.Delete(mn.settings.sHomeDir, true);
       }      
     }
 
@@ -1686,7 +1686,7 @@ namespace CornerkickUnitTest
           Debug.WriteLine(iMd++.ToString().PadLeft(2) + " - " + md.dt.ToString());
           foreach (CornerkickGame.Game.Data gd in md.ltGameData) {
             string sGame = ("Team_" + gd.team[0].iTeamId.ToString()).PadLeft(7) + " - " + ("Team_" + gd.team[1].iTeamId.ToString()).PadLeft(7);
-            string sResult = mn.ui.getResultString(gd);
+            string sResult = CornerkickManager.UI.getResultString(gd);
             if (!string.IsNullOrEmpty(sResult)) sGame += " - " + sResult;
             Debug.WriteLine("  " + sGame);
             
