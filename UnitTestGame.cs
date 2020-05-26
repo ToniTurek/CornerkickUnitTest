@@ -901,7 +901,7 @@ namespace CornerkickUnitTest
             iGH += gameTest.data.team[0].iGoals;
             iGA += gameTest.data.team[1].iGoals;
 
-            List<CornerkickGame.Game.Shoot> ltShootsH = mn.ui.getShoots(gameTest.data.ltState, 0);
+            List<CornerkickGame.Game.Shoot> ltShootsH = CornerkickManager.UI.getShoots(gameTest.data.ltState, 0);
             iShootsH += ltShootsH.Count;
             foreach (CornerkickGame.Game.Shoot shoot in ltShootsH) {
               float fShootDistTmp = CornerkickGame.Tool.getDistanceToGoal(shoot.plShoot, gameTest.ptPitch.X, gameTest.fConvertDist2Meter)[0];
@@ -911,7 +911,7 @@ namespace CornerkickUnitTest
               addShootToRange(fShootDistTmp, ref iShootRange, shoot.iResult, ref iShootRangeGoals);
             }
 
-            List<CornerkickGame.Game.Shoot> ltShootsA = mn.ui.getShoots(gameTest.data.ltState, 1);
+            List<CornerkickGame.Game.Shoot> ltShootsA = CornerkickManager.UI.getShoots(gameTest.data.ltState, 1);
             iShootsA += ltShootsA.Count;
             foreach (CornerkickGame.Game.Shoot shoot in ltShootsA) {
               float fShootDistTmp = CornerkickGame.Tool.getDistanceToGoal(shoot.plShoot, gameTest.ptPitch.X, gameTest.fConvertDist2Meter)[0];
@@ -1150,7 +1150,7 @@ namespace CornerkickUnitTest
       CornerkickManager.Main mng = new CornerkickManager.Main(bContinuingTime: true);
       mng.settings.sHomeDir = Path.Combine(mng.settings.sHomeDir, "io_test");
 #if _ANSYS
-      CornerkickManager.Main.sHomeDir = @"D:\\scratch\\u522245\\test\\io_test";
+      mng.settings.sHomeDir = @"D:\\scratch\\u522245\\test\\io_test";
 #endif
 
       string sLoadFile = Path.Combine(mng.settings.sHomeDir, "test");
@@ -1240,7 +1240,7 @@ namespace CornerkickUnitTest
       CornerkickManager.Main mn = new CornerkickManager.Main();
       mn.settings.sHomeDir = Path.Combine(mn.settings.sHomeDir, "test");
 #if _ANSYS
-      CornerkickManager.Main.sHomeDir = @"D:\\scratch\\u522245\\test";
+      mn.settings.sHomeDir = @"D:\\scratch\\u522245\\test";
 #endif
       if (!Directory.Exists(mn.settings.sHomeDir)) Directory.CreateDirectory(mn.settings.sHomeDir);
 
