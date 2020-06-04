@@ -489,12 +489,61 @@ namespace CornerkickUnitTest
       int iX0 = game.ptPitch.X / 2;
       int iY0 = 0;
       Point pt0 = new Point(iX0, iY0);
-      Assert.AreEqual(  0.0, CornerkickGame.Tool.getPhi(pt0, new Point(pt0.X - 1, pt0.Y    ), game.fConvertDist2Meter), 0.0001); // A
-      Assert.AreEqual( 60.0, CornerkickGame.Tool.getPhi(pt0, new Point(pt0.X - 1, pt0.Y - 1), game.fConvertDist2Meter), 0.0001); // W
-      Assert.AreEqual(120.0, CornerkickGame.Tool.getPhi(pt0, new Point(pt0.X + 1, pt0.Y - 1), game.fConvertDist2Meter), 0.0001); // E
-      Assert.AreEqual(180.0, CornerkickGame.Tool.getPhi(pt0, new Point(pt0.X + 1, pt0.Y    ), game.fConvertDist2Meter), 0.0001); // D
-      Assert.AreEqual(240.0, CornerkickGame.Tool.getPhi(pt0, new Point(pt0.X + 1, pt0.Y + 1), game.fConvertDist2Meter), 0.0001); // X
-      Assert.AreEqual(300.0, CornerkickGame.Tool.getPhi(pt0, new Point(pt0.X - 1, pt0.Y + 1), game.fConvertDist2Meter), 0.0001); // Y
+      Assert.AreEqual(  0.0, CornerkickGame.Tool.getPhi(pt0, new Point(pt0.X - 1, pt0.Y    )), 0.0001); // A
+      Assert.AreEqual( 60.0, CornerkickGame.Tool.getPhi(pt0, new Point(pt0.X - 1, pt0.Y - 1)), 0.0001); // W
+      Assert.AreEqual(120.0, CornerkickGame.Tool.getPhi(pt0, new Point(pt0.X + 1, pt0.Y - 1)), 0.0001); // E
+      Assert.AreEqual(180.0, CornerkickGame.Tool.getPhi(pt0, new Point(pt0.X + 1, pt0.Y    )), 0.0001); // D
+      Assert.AreEqual(240.0, CornerkickGame.Tool.getPhi(pt0, new Point(pt0.X + 1, pt0.Y + 1)), 0.0001); // X
+      Assert.AreEqual(300.0, CornerkickGame.Tool.getPhi(pt0, new Point(pt0.X - 1, pt0.Y + 1)), 0.0001); // Y
+    }
+
+    [TestMethod]
+    public void TestPhiRel()
+    {
+      CornerkickGame.Player pl1 = new CornerkickGame.Player();
+      CornerkickGame.Player pl2 = new CornerkickGame.Player();
+
+      pl1.ptPos = new Point(61, 0);
+      pl2.ptPos = new Point( 1, 0);
+
+      pl1.iLookAt = 0;
+      Assert.AreEqual(   0.0, CornerkickGame.Tool.getPhiRel(pl1, pl2), 0.0001);
+
+      pl1.iLookAt = 1;
+      Assert.AreEqual( -60.0, CornerkickGame.Tool.getPhiRel(pl1, pl2), 0.0001);
+
+      pl1.iLookAt = 2;
+      Assert.AreEqual(-120.0, CornerkickGame.Tool.getPhiRel(pl1, pl2), 0.0001);
+
+      pl1.iLookAt = 3;
+      Assert.AreEqual(-180.0, CornerkickGame.Tool.getPhiRel(pl1, pl2), 0.0001);
+
+      pl1.iLookAt = 4;
+      Assert.AreEqual(+120.0, CornerkickGame.Tool.getPhiRel(pl1, pl2), 0.0001);
+
+      pl1.iLookAt = 5;
+      Assert.AreEqual( +60.0, CornerkickGame.Tool.getPhiRel(pl1, pl2), 0.0001);
+
+      pl1.ptPos = new Point( 61, 0);
+      pl2.ptPos = new Point(122, 0);
+
+      pl1.iLookAt = 0;
+      Assert.AreEqual(+180.0, CornerkickGame.Tool.getPhiRel(pl1, pl2), 0.0001);
+
+      pl1.iLookAt = 1;
+      Assert.AreEqual(+120.0, CornerkickGame.Tool.getPhiRel(pl1, pl2), 0.0001);
+
+      pl1.iLookAt = 2;
+      Assert.AreEqual( +60.0, CornerkickGame.Tool.getPhiRel(pl1, pl2), 0.0001);
+
+      pl1.iLookAt = 3;
+      Assert.AreEqual(   0.0, CornerkickGame.Tool.getPhiRel(pl1, pl2), 0.0001);
+
+      pl1.iLookAt = 4;
+      Assert.AreEqual( -60.0, CornerkickGame.Tool.getPhiRel(pl1, pl2), 0.0001);
+
+      pl1.iLookAt = 5;
+      Assert.AreEqual(-120.0, CornerkickGame.Tool.getPhiRel(pl1, pl2), 0.0001);
     }
 
     [TestMethod]
@@ -610,6 +659,84 @@ namespace CornerkickUnitTest
       }
 
       Assert.AreEqual(true, gameTest.data.team[0].iGoals != gameTest.data.team[1].iGoals);
+    }
+
+    [TestMethod]
+    public void TestMoralResult()
+    {
+      CornerkickGame.Game gameTest6 = game.tl.getDefaultGame(iPlayerSkills: 6);
+      CornerkickGame.Game gameTest8 = game.tl.getDefaultGame(iPlayerSkills: 8);
+
+      // Weak team wins against weak team
+      gameTest6 = game.tl.getDefaultGame(iPlayerSkills: 6);
+      CornerkickGame.Game.setMoralResult(2, 0, new CornerkickGame.Player[][] { gameTest6.player[0], gameTest6.player[1] }, 11, 0);
+      Assert.AreEqual(1.03, getMoralAve(gameTest6.player[0], 11), 0.0001); // Moral increase: +3%
+      Assert.AreEqual(0.97, getMoralAve(gameTest6.player[1], 11), 0.0001); // Moral decrease: -3%
+
+      // Strong team wins against weak team
+      gameTest6 = game.tl.getDefaultGame(iPlayerSkills: 6);
+      gameTest8 = game.tl.getDefaultGame(iPlayerSkills: 8);
+      CornerkickGame.Game.setMoralResult(2, 0, new CornerkickGame.Player[][] { gameTest8.player[0], gameTest6.player[1] }, 11, 0);
+      Assert.AreEqual(1.012500, getMoralAve(gameTest8.player[0], 11), 0.0001); // Moral increase: +1.25%
+      Assert.AreEqual(0.983125, getMoralAve(gameTest6.player[1], 11), 0.0001); // Moral decrease: -1.6875%
+
+      // Weak team wins against strong team
+      gameTest6 = game.tl.getDefaultGame(iPlayerSkills: 6);
+      gameTest8 = game.tl.getDefaultGame(iPlayerSkills: 8);
+      CornerkickGame.Game.setMoralResult(0, 2, new CornerkickGame.Player[][] { gameTest8.player[0], gameTest6.player[1] }, 11, 0);
+      Assert.AreEqual(0.946666, getMoralAve(gameTest8.player[0], 11), 0.0001); // Moral decrease: -5.3%
+      Assert.AreEqual(1.061111, getMoralAve(gameTest6.player[1], 11), 0.0001); // Moral increase: +6.1%
+
+      // Weak team playes draw against strong team
+      gameTest6 = game.tl.getDefaultGame(iPlayerSkills: 6);
+      gameTest8 = game.tl.getDefaultGame(iPlayerSkills: 8);
+      CornerkickGame.Game.setMoralResult(2, 2, new CornerkickGame.Player[][] { gameTest8.player[0], gameTest6.player[1] }, 11, 0);
+      Assert.AreEqual(0.995625, getMoralAve(gameTest8.player[0], 11), 0.0001); // Moral decrease: -0.4%
+      Assert.AreEqual(1.007778, getMoralAve(gameTest6.player[1], 11), 0.0001); // Moral increase: +0.8%
+
+      // Weak with low moral team wins against weak team with high moral
+      gameTest6 = game.tl.getDefaultGame(iPlayerSkills: 6);
+      for (int iP = 0; iP < gameTest6.player[0].Length; iP++) gameTest6.player[0][iP].fMoral *= 0.9f;
+      for (int iP = 0; iP < gameTest6.player[1].Length; iP++) gameTest6.player[1][iP].fMoral *= 1.1f;
+      CornerkickGame.Game.setMoralResult(2, 0, new CornerkickGame.Player[][] { gameTest6.player[0], gameTest6.player[1] }, 11, 0);
+      Assert.AreEqual(0.96140, getMoralAve(gameTest6.player[0], 11), 0.0001); // Moral increase: +6.14%
+      Assert.AreEqual(1.04577, getMoralAve(gameTest6.player[1], 11), 0.0001); // Moral decrease: -5.42%
+
+      // Weak with high moral team wins against weak team with low moral
+      gameTest6 = game.tl.getDefaultGame(iPlayerSkills: 6);
+      for (int iP = 0; iP < gameTest6.player[0].Length; iP++) gameTest6.player[0][iP].fMoral *= 1.1f;
+      for (int iP = 0; iP < gameTest6.player[1].Length; iP++) gameTest6.player[1][iP].fMoral *= 0.9f;
+      CornerkickGame.Game.setMoralResult(2, 0, new CornerkickGame.Player[][] { gameTest6.player[0], gameTest6.player[1] }, 11, 0);
+      Assert.AreEqual(1.113865, getMoralAve(gameTest6.player[0], 11), 0.0001); // Moral increase: +1.39%
+      Assert.AreEqual(0.883733, getMoralAve(gameTest6.player[1], 11), 0.0001); // Moral decrease: -1.63%
+    }
+    private float getMoralAve(CornerkickGame.Player[] pl, byte nPl)
+    {
+      float fMoralAve = 0f;
+
+      for (byte iP = 0; iP < nPl; iP++) fMoralAve += pl[iP].fMoral;
+      fMoralAve /= nPl;
+
+      return fMoralAve;
+    }
+
+    [TestMethod]
+    public void TestNewPlayerFoot()
+    {
+      CornerkickManager.Main mn = new CornerkickManager.Main();
+      const int nPl = 5000;
+
+      byte[] iPosLeft  = new byte[] { 3, 6, 9 };
+      foreach (byte iPos in iPosLeft) {
+        int iPlLeft = 0;
+
+        for (int iP = 0; iP < nPl; iP++) {
+          CornerkickGame.Player plNew = mn.plr.newPlayer(iPos: iPos);
+          if (plNew.fFootL > 0.99999f) iPlLeft++;
+        }
+
+        Assert.AreEqual(0.8, iPlLeft / (double)nPl, 0.01);
+      }
     }
 
     [TestMethod]
@@ -1252,19 +1379,29 @@ namespace CornerkickUnitTest
       int[] iSeats = new int[3];
       for (byte iS = 0; iS < iSeats.Length; iS++) iSeats[iS] = gameTest.data.stadium.getSeats(iS);
       
+      // Perform the game
       bool bOk = mn.doGame(gameTest, bAlwaysWriteToDisk: true, bWaitUntilGameIsSaved: true);
       Assert.AreEqual(true, bOk);
 
+      // Get game files
       DirectoryInfo diGames = new DirectoryInfo(@Path.Combine(mn.settings.sHomeDir, "save", "games"));
       FileInfo[] fiGames = diGames.GetFiles("*.ckgx");
       while (fiGames.Length == 0) {
         fiGames = diGames.GetFiles("*.ckgx");
       }
-      foreach(FileInfo fiGame in fiGames)
-      {
+
+      // Read game file(s) and perform checks
+      foreach(FileInfo fiGame in fiGames) {
         CornerkickGame.Game gameLoad = mn.io.loadGame(fiGame.FullName);
 
         for (byte iS = 0; iS < iSeats.Length; iS++) Assert.AreEqual(iSeats[iS], gameTest.data.stadium.getSeats(iS));
+
+        List<CornerkickGame.Game.Shoot> ltShoots = CornerkickManager.UI.getShoots(gameLoad.data.ltState);
+        foreach (CornerkickGame.Game.Shoot shoot in ltShoots) {
+          float fChanceShootOnGoal = gameLoad.ai.getChanceShootOnGoal(shoot.plShoot, 0);
+          fChanceShootOnGoal = gameLoad.ai.getChanceShootOnGoal(shoot.plShoot, 0);
+          Assert.AreEqual(shoot.fChanceOnGoal, fChanceShootOnGoal, 0.01);
+        }
 
         Directory.Delete(mn.settings.sHomeDir, true);
       }      
@@ -1683,7 +1820,7 @@ namespace CornerkickUnitTest
         foreach (CornerkickManager.Cup.Matchday md in cupTmp.ltMatchdays) {
           if (md.ltGameData == null) break;
 
-          Debug.WriteLine(iMd++.ToString().PadLeft(2) + " - " + md.dt.ToString());
+          Debug.WriteLine(iMd.ToString().PadLeft(2) + " - " + md.dt.ToString());
           foreach (CornerkickGame.Game.Data gd in md.ltGameData) {
             string sGame = ("Team_" + gd.team[0].iTeamId.ToString()).PadLeft(7) + " - " + ("Team_" + gd.team[1].iTeamId.ToString()).PadLeft(7);
             string sResult = CornerkickManager.UI.getResultString(gd);
@@ -1694,6 +1831,19 @@ namespace CornerkickUnitTest
             Assert.AreEqual(true, gd.stadium.getSeats() > 0);
             Assert.AreEqual(true, gd.iSpectators[0] + gd.iSpectators[1] + gd.iSpectators[2] > 0);
           }
+
+          if (cupTmp.iId == 3 && iMd == 6) {
+            List<CornerkickManager.Cup.TableItem> tbl = cupTmp.getTable(iMd);
+            Debug.WriteLine("+----------------------+");
+            Debug.WriteLine("| Name  s u n  gls pts |");
+            Debug.WriteLine("+----------------------+");
+            foreach (CornerkickManager.Cup.TableItem ti in tbl) {
+              Debug.WriteLine("| " + ti.club.sName + " " + ti.iGUV[0].ToString() + " " + ti.iGUV[1].ToString() + " " + ti.iGUV[2].ToString() + " " + ti.iGoals.ToString().PadLeft(2) + ":" + ti.iGoalsOpp.ToString().PadRight(2) + " " + ti.iPoints.ToString().PadLeft(2) + " |");
+            }
+            Debug.WriteLine("+----------------------+");
+          }
+
+          iMd++;
         }
       }
       Debug.WriteLine("End of season: " + mn.dtSeasonEnd.ToString());
@@ -1703,12 +1853,29 @@ namespace CornerkickUnitTest
       Assert.AreEqual(true, table.Count == nTeams);
       Assert.AreEqual(true, table[0].iGoals > 0);
       Assert.AreEqual(true, table[0].iGUV[0] > table[0].iGUV[2]);
+      for (int i = 0; i < table.Count; i++) {
+        Assert.AreEqual(i + 1, league.getPlace(table[i].club));
+      }
       
+      // Nat. cup
       Assert.AreEqual(true, cup.ltMatchdays.Count > 3);
       Assert.AreEqual(true, cup.ltMatchdays[3].ltGameData.Count == 1);
 
+      // Intern. cup
       Assert.AreEqual(true, cupInter.ltMatchdays.Count > 10);
       Assert.AreEqual(true, cupInter.ltMatchdays[10].ltGameData.Count == 1);
+      CornerkickManager.Club clbCupInter1 = null;
+      CornerkickManager.Club clbCupInter2 = null;
+      sbyte iWDD = CornerkickGame.Tool.getWinDrawDefeat(cupInter.ltMatchdays[10].ltGameData[0]);
+      if (iWDD > 0) {
+        clbCupInter1 = mn.ltClubs[cupInter.ltMatchdays[10].ltGameData[0].team[0].iTeamId];
+        clbCupInter2 = mn.ltClubs[cupInter.ltMatchdays[10].ltGameData[0].team[1].iTeamId];
+      } else if (iWDD < 0) {
+        clbCupInter1 = mn.ltClubs[cupInter.ltMatchdays[10].ltGameData[0].team[1].iTeamId];
+        clbCupInter2 = mn.ltClubs[cupInter.ltMatchdays[10].ltGameData[0].team[0].iTeamId];
+      }
+      Assert.AreEqual(1, cupInter.getPlace(clbCupInter1));
+      Assert.AreEqual(2, cupInter.getPlace(clbCupInter2));
 
       // World cup
       Assert.AreEqual(true, cupWc.ltMatchdays.Count > 4);
@@ -1809,6 +1976,20 @@ namespace CornerkickUnitTest
     */
 
     [TestMethod]
+    public void TestWinDrawDefeat()
+    {
+      Assert.AreEqual(+1, CornerkickGame.Tool.getWinDrawDefeat(1, 0));
+      Assert.AreEqual( 0, CornerkickGame.Tool.getWinDrawDefeat(1, 1));
+      Assert.AreEqual(-1, CornerkickGame.Tool.getWinDrawDefeat(0, 1));
+
+      Assert.AreEqual( 0, CornerkickGame.Tool.getWinDrawDefeat(1, 0, 1, 0));
+      Assert.AreEqual(-1, CornerkickGame.Tool.getWinDrawDefeat(1, 1, 1, 0));
+      Assert.AreEqual(+1, CornerkickGame.Tool.getWinDrawDefeat(1, 1, 2, 2));
+      Assert.AreEqual(+1, CornerkickGame.Tool.getWinDrawDefeat(1, 0, 2, 1));
+      Assert.AreEqual(-1, CornerkickGame.Tool.getWinDrawDefeat(3, 2, 1, 0));
+    }
+
+    [TestMethod]
     public void TestTraining()
     {
       const byte iTrainingsPerDayMax = 3;
@@ -1873,18 +2054,18 @@ namespace CornerkickUnitTest
             }
 
             // Test
-            if        (i == 0) { // Test common training increase of condi. (3.03%)
-              if      (iTrainingType[iType] == 2) Assert.AreEqual(0.83173, pl.fCondition, fDeltaErr); // Condi
-              else if (iTrainingType[iType] == 1) Assert.AreEqual(0.78500, pl.fCondition, fDeltaErr); // Fresh
+            if        (i == 0) { // Test common training increase of condi. (4.89%)
+              if      (iTrainingType[iType] == 2) Assert.AreEqual(0.848933, pl.fCondition, fDeltaErr); // Condi
+              else if (iTrainingType[iType] == 1) Assert.AreEqual(0.785000, pl.fCondition, fDeltaErr); // Fresh
 
               fCondi0 = pl.fCondition;
               fFresh0 = pl.fFresh;
               fMood0  = pl.fMoral;
             } else if (i == 1) { // Test training increase with trainer level 5
               if (iTrainingType[iType] == 2) {
-                Assert.AreEqual(1.0422665, pl.fCondition / fCondiPre, fDeltaErr);
-                Assert.AreEqual(0.9730000, pl.fFresh     / fFreshPre, fDeltaErr);
-                Assert.AreEqual(0.9921875, pl.fMoral     / fMoodPre,  fDeltaErr);
+                Assert.AreEqual(1.0635280, pl.fCondition / fCondiPre, fDeltaErr);
+                Assert.AreEqual(0.9370000, pl.fFresh     / fFreshPre, fDeltaErr);
+                Assert.AreEqual(0.9843750, pl.fMoral     / fMoodPre,  fDeltaErr);
 
                 Assert.AreEqual(1.0025042, pl.fCondition / fCondi0,   fDeltaErr);
                 Assert.AreEqual(1.0000000, pl.fFresh     / fFresh0,   fDeltaErr);
@@ -1892,12 +2073,12 @@ namespace CornerkickUnitTest
               }
             } else if (i == 2) { // Test training increase with training camp
               if (iTrainingType[iType] == 2) {
-                Assert.AreEqual(1.0603906, pl.fCondition / fCondiPre, fDeltaErr);
-                Assert.AreEqual(0.9792308, pl.fFresh     / fFreshPre, fDeltaErr);
-                Assert.AreEqual(0.9943182, pl.fMoral     / fMoodPre,  fDeltaErr);
+                Assert.AreEqual(1.0799511, pl.fCondition / fCondiPre, fDeltaErr);
+                Assert.AreEqual(0.9515384, pl.fFresh     / fFreshPre, fDeltaErr);
+                Assert.AreEqual(0.9886364, pl.fMoral     / fMoodPre,  fDeltaErr);
 
                 Assert.AreEqual(1.0199369, pl.fCondition / fCondi0,   fDeltaErr);
-                Assert.AreEqual(1.0064037, pl.fFresh     / fFresh0,   fDeltaErr);
+                Assert.AreEqual(1.0155160, pl.fFresh     / fFresh0,   fDeltaErr);
                 Assert.AreEqual(1.0021474, pl.fMoral     / fMood0,    fDeltaErr);
               }
             } else if (i == 3) { // Test training increase with doping
