@@ -619,7 +619,7 @@ namespace CornerkickUnitTest
           iG += gameTest.data.team[iHA].iGoals;
         }
 
-        // Check penalty success (82% - 84%)
+        // Check penalty success (81% - 85%)
         Assert.AreEqual(0.83, iG / (float)nPenalties, 0.02);
       }
     }
@@ -659,6 +659,7 @@ namespace CornerkickUnitTest
       }
 
       Assert.AreEqual(true, gameTest.data.team[0].iGoals != gameTest.data.team[1].iGoals);
+      Assert.AreEqual(true, Math.Max(gameTest.data.team[0].iGoals, gameTest.data.team[1].iGoals) > 2);
     }
 
     [TestMethod]
@@ -1277,7 +1278,7 @@ namespace CornerkickUnitTest
       CornerkickManager.Main mng = new CornerkickManager.Main(bContinuingTime: true);
       mng.settings.sHomeDir = Path.Combine(mng.settings.sHomeDir, "io_test");
 #if _ANSYS
-      mng.settings.sHomeDir = @"D:\\scratch\\u522245\\test\\io_test";
+      mng.settings.sHomeDir = @"D:\scratch\u522245\test\io_test";
 #endif
 
       string sLoadFile = Path.Combine(mng.settings.sHomeDir, "test");
@@ -1764,7 +1765,7 @@ namespace CornerkickUnitTest
 
       // Perform next step until end of season
       while (mn.next() < 99) {
-        Debug.WriteLine(mn.dtDatum.ToString());
+        if (mn.dtDatum.Hour == 0 && mn.dtDatum.Minute == 0) Debug.WriteLine(mn.dtDatum.ToString());
 
         // Set stadiums for semi-final and final games
         for (byte iMd = 3; iMd < 5; iMd++) {
@@ -1822,7 +1823,14 @@ namespace CornerkickUnitTest
 
           Debug.WriteLine(iMd.ToString().PadLeft(2) + " - " + md.dt.ToString());
           foreach (CornerkickGame.Game.Data gd in md.ltGameData) {
-            string sGame = ("Team_" + gd.team[0].iTeamId.ToString()).PadLeft(7) + " - " + ("Team_" + gd.team[1].iTeamId.ToString()).PadLeft(7);
+            CornerkickManager.Club clbH = CornerkickManager.Tool.getClubFromId(gd.team[0].iTeamId, mn.ltClubs);
+            CornerkickManager.Club clbA = CornerkickManager.Tool.getClubFromId(gd.team[1].iTeamId, mn.ltClubs);
+            string sGame = "";
+            if (clbH != null) sGame += clbH.sName.PadLeft(7);
+            else              sGame += " ? ";
+            sGame += " - ";
+            if (clbA != null) sGame += clbA.sName.PadLeft(7);
+            else              sGame += " ? ";
             string sResult = CornerkickManager.UI.getResultString(gd);
             if (!string.IsNullOrEmpty(sResult)) sGame += " - " + sResult;
             Debug.WriteLine("  " + sGame);
@@ -1832,15 +1840,17 @@ namespace CornerkickUnitTest
             Assert.AreEqual(true, gd.iSpectators[0] + gd.iSpectators[1] + gd.iSpectators[2] > 0);
           }
 
-          if (cupTmp.iId == 3 && iMd == 6) {
-            List<CornerkickManager.Cup.TableItem> tbl = cupTmp.getTable(iMd);
-            Debug.WriteLine("+----------------------+");
-            Debug.WriteLine("| Name  s u n  gls pts |");
-            Debug.WriteLine("+----------------------+");
-            foreach (CornerkickManager.Cup.TableItem ti in tbl) {
-              Debug.WriteLine("| " + ti.club.sName + " " + ti.iGUV[0].ToString() + " " + ti.iGUV[1].ToString() + " " + ti.iGUV[2].ToString() + " " + ti.iGoals.ToString().PadLeft(2) + ":" + ti.iGoalsOpp.ToString().PadRight(2) + " " + ti.iPoints.ToString().PadLeft(2) + " |");
+          if ((cupTmp.iId == 3 && iMd == 6) || cupTmp.iId == 7 && iMd == 3) {
+            for (sbyte iG = 0; iG < cupTmp.settings.nGroups; iG++) {
+              List<CornerkickManager.Cup.TableItem> tbl = cupTmp.getTable(iMd, iGroup: iG);
+              Debug.WriteLine("+-----------------------+");
+              Debug.WriteLine("|  Name  s u n  gls pts |");
+              Debug.WriteLine("+-----------------------+");
+              foreach (CornerkickManager.Cup.TableItem ti in tbl) {
+                Debug.WriteLine("| " + ti.club.sName.PadRight(6) + " " + ti.iGUV[0].ToString() + " " + ti.iGUV[1].ToString() + " " + ti.iGUV[2].ToString() + " " + ti.iGoals.ToString().PadLeft(2) + ":" + ti.iGoalsOpp.ToString().PadRight(2) + " " + ti.iPoints.ToString().PadLeft(2) + " |");
+              }
+              Debug.WriteLine("+-----------------------+");
             }
-            Debug.WriteLine("+----------------------+");
           }
 
           iMd++;
