@@ -733,10 +733,10 @@ namespace CornerkickUnitTest
 
         for (int iP = 0; iP < nPl; iP++) {
           CornerkickGame.Player plNew = mn.plr.newPlayer(iPos: iPos);
-          if (plNew.fFootL > 0.99999f) iPlLeft++;
+          if (plNew.fFootL > 0.9999f) iPlLeft++;
         }
 
-        Assert.AreEqual(0.8, iPlLeft / (double)nPl, 0.01);
+        Assert.AreEqual(0.8, iPlLeft / (double)nPl, 0.015);
       }
     }
 
@@ -1738,6 +1738,8 @@ namespace CornerkickUnitTest
       mn.drawCup(league);
       mn.drawCup(cupWc);
 
+      cupInter.draw(mn.dtDatum);
+
       // Set biggest stadium to WC game data
       foreach (CornerkickManager.Cup.Matchday mdWc in cupWc.ltMatchdays) {
         if (mdWc.ltGameData == null) break;
@@ -1762,6 +1764,9 @@ namespace CornerkickUnitTest
       // Test player suspension
       CornerkickGame.Player plSusp = mn.ltClubs[0].ltPlayer[0];
       plSusp.iSuspension[0] = 5; // Suspend for 5 games
+
+      Stopwatch sw = new Stopwatch();
+      sw.Start();
 
       // Perform next step until end of season
       while (mn.next() < 99) {
@@ -1812,6 +1817,9 @@ namespace CornerkickUnitTest
           }
         }
       }
+
+      // Stop stopwatch
+      sw.Stop();
 
       Debug.WriteLine("Start of season: " + mn.dtSeasonStart.ToString());
       foreach (CornerkickManager.Cup cupTmp in mn.ltCups) {
@@ -1893,6 +1901,8 @@ namespace CornerkickUnitTest
       Assert.AreEqual(true, cupWc.ltMatchdays[4].ltGameData[0].team[0].iGoals >= 0);
       Assert.AreEqual(true, cupWc.ltMatchdays[4].ltGameData[0].team[1].iGoals >= 0);
       Assert.AreEqual(true, cupWc.ltMatchdays[4].ltGameData[0].team[0].iGoals != cupWc.ltMatchdays[4].ltGameData[0].team[1].iGoals);
+     
+      Debug.WriteLine("Elapsed time: " + (sw.ElapsedMilliseconds / 1000.0).ToString("0.0") + " s");
 
       // save/load
       if (bTestIO) testIO(mn);
@@ -2048,12 +2058,12 @@ namespace CornerkickUnitTest
               clb.staff.iCondiTrainer = 5;
             } else if (i == 2) { // Test training camp
               CornerkickManager.TrainingCamp.Camp cmp = mn.tcp.ltCamps[1];
-              mn.tcp.bookCamp(ref clb, cmp, mn.dtDatum.AddDays(-1), mn.dtDatum.AddDays(+1));
+              CornerkickManager.TrainingCamp.bookCamp(ref clb, cmp, mn.dtDatum.AddDays(-1), mn.dtDatum.AddDays(+1), mn.dtDatum);
             } else if (i == 3) { // Test doping
               pl.doDoping(mn.ltDoping[1]);
             }
 
-            CornerkickManager.TrainingCamp.Booking tcb = mn.tcp.getCurrentCamp(clb, mn.dtDatum);
+            CornerkickManager.TrainingCamp.Booking tcb = CornerkickManager.TrainingCamp.getCurrentCamp(clb, mn.dtDatum);
 
             float fCondiPre = pl.fCondition;
             float fFreshPre = pl.fFresh;
