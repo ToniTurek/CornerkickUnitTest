@@ -1647,8 +1647,9 @@ namespace CornerkickUnitTest
       // Create nat. cup
       CornerkickManager.Cup cup = new CornerkickManager.Cup(bKo: true);
       cup.iId  = 2;
-      cup.sName = "National Cup";
       cup.iId2 = iLand;
+      cup.sName = "National Cup";
+      cup.settings.iNeutral = 1;
       mn.ltCups.Add(cup);
 
       /////////////////////////////////////////////////////////////////////
