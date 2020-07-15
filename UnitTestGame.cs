@@ -2214,14 +2214,21 @@ namespace CornerkickUnitTest
 
       CornerkickGame.Player pl = new CornerkickGame.Player(7);
 
-      // Player value should be 2.290 mio €
-      pl.fExperiencePos[10] = 1.0f;
-      Assert.AreEqual(2290, pl.getValue(25f, 1000), 0.00001);
+      float fAge = 25f;
 
-      // Player value should be 3.022 mio €
+      // Player value should be 2.849 mio €
+      pl.fExperiencePos[10] = 1.0f;
+      Assert.AreEqual(2849, pl.getValue(fAge, 1000), 0.00001);
+
+      // Player value should be 3.388 mio €
       pl.fExperiencePos[ 8] = 0.5f;
       pl.fExperiencePos[ 9] = 0.5f;
-      Assert.AreEqual(3022, pl.getValue(25f, 1000), 0.00001);
+      Assert.AreEqual(3388, pl.getValue(fAge, 1000), 0.00001);
+
+      // Player value should be 20.095 mio €
+      fAge = 16f;
+      pl.iTalent = 9;
+      Assert.AreEqual(20095, pl.getValue(fAge, 1000), 0.00001);
     }
 
     [TestMethod]
