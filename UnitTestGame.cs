@@ -1049,8 +1049,8 @@ namespace CornerkickUnitTest
               addShootToRange(fShootDistTmp, ref iShootRange, shoot.iResult, ref iShootRangeGoals);
             }
 
-            iDuelH += (uint)mn.ui.getDuels(gameTest.data.ltState, 0).Count;
-            iDuelA += (uint)mn.ui.getDuels(gameTest.data.ltState, 1).Count;
+            iDuelH += (uint)CornerkickManager.UI.getDuels(gameTest.data.ltState, 0).Count;
+            iDuelA += (uint)CornerkickManager.UI.getDuels(gameTest.data.ltState, 1).Count;
 
             for (byte iPl = 0; iPl < gameTest.player[0].Length; iPl++) iStepsH += (uint)gameTest.player[0][iPl].iSteps;
             for (byte iPl = 0; iPl < gameTest.player[1].Length; iPl++) iStepsA += (uint)gameTest.player[1][iPl].iSteps;
@@ -1058,9 +1058,9 @@ namespace CornerkickUnitTest
             iPossH += (uint)gameTest.data.team[0].iPossession;
             iPossA += (uint)gameTest.data.team[1].iPossession;
 
-            List<CornerkickGame.Game.Pass> lPassesH = mn.ui.getPasses(gameTest.data.ltState, 0);
+            List<CornerkickGame.Game.Pass> lPassesH = CornerkickManager.UI.getPasses(gameTest.data.ltState, 0);
             iPassH += (uint)lPassesH.Count;
-            List<CornerkickGame.Game.Pass> lPassesA = mn.ui.getPasses(gameTest.data.ltState, 1);
+            List<CornerkickGame.Game.Pass> lPassesA = CornerkickManager.UI.getPasses(gameTest.data.ltState, 1);
             iPassA += (uint)lPassesA.Count;
 
             iOffsiteH += (uint)gameTest.data.team[0].iOffsite;
@@ -2058,7 +2058,7 @@ namespace CornerkickUnitTest
               clb.staff.iCondiTrainer = 5;
             } else if (i == 2) { // Test training camp
               CornerkickManager.TrainingCamp.Camp cmp = mn.tcp.ltCamps[1];
-              CornerkickManager.TrainingCamp.bookCamp(ref clb, cmp, mn.dtDatum.AddDays(-1), mn.dtDatum.AddDays(+1), mn.dtDatum);
+              CornerkickManager.TrainingCamp.bookCamp(ref clb, cmp, mn.dtDatum.AddDays(-1), mn.dtDatum.AddDays(+1), mn.dtDatum, mn.settings.tsTrainingLength);
             } else if (i == 3) { // Test doping
               pl.doDoping(mn.ltDoping[1]);
             }
