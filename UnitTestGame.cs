@@ -1911,7 +1911,7 @@ namespace CornerkickUnitTest
 
     private void testIO(CornerkickManager.Main mng)
     {
-      const string sSaveFile = "unittest_save";
+      string sSaveFile = Path.Combine(mng.settings.sHomeDir, "unittest_save");
 
       DateTime dtCurrent = mng.dtDatum;
       int iSeasonCountTmp = mng.iSeason;
@@ -1928,6 +1928,7 @@ namespace CornerkickUnitTest
       }
 
       mng.io.save(sSaveFile);
+      mng = new CornerkickManager.Main();
       mng.io.load(sSaveFile);
 
       // General
