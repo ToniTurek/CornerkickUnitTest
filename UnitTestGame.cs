@@ -250,10 +250,10 @@ namespace CornerkickUnitTest
       double fPassLength;
       int iPassAhead;
 
-      //int[] iDistOppY     = new int[] { 2, 4, 6, 8, 10, 16, 22 };
-      //int[] iPassAheadExp = new int[] { 1, 2, 3, 4,  5,  7,  9 };
-      int[] iDistOppY     = new int[] { 8 };
-      int[] iPassAheadExp = new int[] { 10 };
+      int[] iDistOppY     = new int[] { 2, 4, 6, 8, 10, 16, 22 };
+      int[] iPassAheadExp = new int[] { 2, 2, 3, 4,  5,  7,  9 };
+      //int[] iDistOppY     = new int[] { 8 };
+      //int[] iPassAheadExp = new int[] { 4 };
       for (int i = 0; i < iDistOppY.Length; i++) {
         int iDistPlayer = 10;
 
