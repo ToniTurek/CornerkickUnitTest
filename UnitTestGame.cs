@@ -499,7 +499,7 @@ namespace CornerkickUnitTest
       float[] fPlAction;
       sbyte iAction = gameTest.ai.getPlayerAction(plOff1, out fPlAction, false, 10);
 #if _AI2
-      Assert.AreEqual(0.9473, fPlAction[1], 0.02);
+      Assert.AreEqual(0.97, fPlAction[1], 0.02);
 #else
       Assert.AreEqual(0.7, fPlAction[1], 0.02);
 #endif
@@ -740,16 +740,16 @@ namespace CornerkickUnitTest
       for (int iP = 0; iP < gameTest6.player[0].Length; iP++) gameTest6.player[0][iP].fMoral *= 0.9f;
       for (int iP = 0; iP < gameTest6.player[1].Length; iP++) gameTest6.player[1][iP].fMoral *= 1.1f;
       CornerkickGame.Game.setMoralResult(2, 0, new CornerkickGame.Player[][] { gameTest6.player[0], gameTest6.player[1] }, 11, 0);
-      Assert.AreEqual(0.96140, getMoralAve(gameTest6.player[0], 11), 0.0001); // Moral increase: +6.14%
-      Assert.AreEqual(1.04577, getMoralAve(gameTest6.player[1], 11), 0.0001); // Moral decrease: -5.42%
+      Assert.AreEqual(0.9595385193824768, getMoralAve(gameTest6.player[0], 11), 0.0001); // Moral increase: +6.14%
+      Assert.AreEqual(1.0471595525741577, getMoralAve(gameTest6.player[1], 11), 0.0001); // Moral decrease: -5.42%
 
       // Weak with high moral team wins against weak team with low moral
       gameTest6 = game.tl.getDefaultGame(iPlayerSkills: 6);
       for (int iP = 0; iP < gameTest6.player[0].Length; iP++) gameTest6.player[0][iP].fMoral *= 1.1f;
       for (int iP = 0; iP < gameTest6.player[1].Length; iP++) gameTest6.player[1][iP].fMoral *= 0.9f;
       CornerkickGame.Game.setMoralResult(2, 0, new CornerkickGame.Player[][] { gameTest6.player[0], gameTest6.player[1] }, 11, 0);
-      Assert.AreEqual(1.113865, getMoralAve(gameTest6.player[0], 11), 0.0001); // Moral increase: +1.39%
-      Assert.AreEqual(0.883733, getMoralAve(gameTest6.player[1], 11), 0.0001); // Moral decrease: -1.63%
+      Assert.AreEqual(1.1144455671310425, getMoralAve(gameTest6.player[0], 11), 0.0001); // Moral increase: +1.39%
+      Assert.AreEqual(0.8833065032958984, getMoralAve(gameTest6.player[1], 11), 0.0001); // Moral decrease: -1.63%
     }
     private float getMoralAve(CornerkickGame.Player[] pl, byte nPl)
     {
@@ -1554,7 +1554,6 @@ namespace CornerkickUnitTest
         List<CornerkickGame.Game.Shoot> ltShoots = CornerkickManager.UI.getShoots(gameLoad.data.ltState);
         foreach (CornerkickGame.Game.Shoot shoot in ltShoots) {
           float fChanceShootOnGoal = gameLoad.ai.getChanceShootOnGoal(shoot.plShoot, 0);
-          fChanceShootOnGoal = gameLoad.ai.getChanceShootOnGoal(shoot.plShoot, 0);
           Assert.AreEqual(shoot.fChanceOnGoal, fChanceShootOnGoal, 0.01);
         }
 
@@ -2251,7 +2250,7 @@ namespace CornerkickUnitTest
 
             // Test
             if        (i == 0) { // Test common training increase of condi. (4.89%)
-              if      (iTrainingType[iType] == 2) Assert.AreEqual(0.848933, pl.plGame.fCondition, fDeltaErr); // Condi
+              if      (iTrainingType[iType] == 2) Assert.AreEqual(0.8038313984870911, pl.plGame.fCondition, fDeltaErr); // Condi
               else if (iTrainingType[iType] == 1) Assert.AreEqual(0.785000, pl.plGame.fCondition, fDeltaErr); // Fresh
 
               fCondi0 = pl.plGame.fCondition;
@@ -2259,7 +2258,7 @@ namespace CornerkickUnitTest
               fMood0  = pl.plGame.fMoral;
             } else if (i == 1) { // Test training increase with trainer level 5
               if (iTrainingType[iType] == 2) {
-                Assert.AreEqual(1.0635280, pl.plGame.fCondition / fCondiPre, fDeltaErr);
+                Assert.AreEqual(1.0077719688415527, pl.plGame.fCondition / fCondiPre, fDeltaErr);
                 Assert.AreEqual(0.9370000, pl.plGame.fFresh     / fFreshPre, fDeltaErr);
                 Assert.AreEqual(0.9843750, pl.plGame.fMoral     / fMoodPre,  fDeltaErr);
 
@@ -2269,11 +2268,11 @@ namespace CornerkickUnitTest
               }
             } else if (i == 2) { // Test training increase with training camp
               if (iTrainingType[iType] == 2) {
-                Assert.AreEqual(1.0799511, pl.plGame.fCondition / fCondiPre, fDeltaErr);
+                Assert.AreEqual(1.0496429204940796, pl.plGame.fCondition / fCondiPre, fDeltaErr);
                 Assert.AreEqual(0.9515384, pl.plGame.fFresh     / fFreshPre, fDeltaErr);
                 Assert.AreEqual(0.9886364, pl.plGame.fMoral     / fMoodPre,  fDeltaErr);
 
-                Assert.AreEqual(1.0199369, pl.plGame.fCondition / fCondi0,   fDeltaErr);
+                Assert.AreEqual(1.0446399450302124, pl.plGame.fCondition / fCondi0,   fDeltaErr);
                 Assert.AreEqual(1.0155160, pl.plGame.fFresh     / fFresh0,   fDeltaErr);
                 Assert.AreEqual(1.0021474, pl.plGame.fMoral     / fMood0,    fDeltaErr);
               }
@@ -2390,19 +2389,19 @@ namespace CornerkickUnitTest
 
       float fAge = 25f;
 
-      // Player value should be 2.849 mio €
+      // Player value should be 2.493 mio €
       pl.plGame.fExperiencePos[10] = 1.0f;
-      Assert.AreEqual(2849, pl.getValue(fAge, mn.dtSeasonEnd, 1000), 0.00001);
+      Assert.AreEqual(2493, pl.getValue(fAge, mn.dtSeasonEnd, 1000), 0.00001);
 
-      // Player value should be 3.388 mio €
+      // Player value should be 2.964 mio €
       pl.plGame.fExperiencePos[ 8] = 0.5f;
       pl.plGame.fExperiencePos[ 9] = 0.5f;
-      Assert.AreEqual(3388, pl.getValue(fAge, mn.dtSeasonEnd, 1000), 0.00001);
+      Assert.AreEqual(2964, pl.getValue(fAge, mn.dtSeasonEnd, 1000), 0.00001);
 
-      // Player value should be 20.095 mio €
+      // Player value should be 17.583 mio €
       fAge = 16f;
-      //pl.iTalent = 9;
-      Assert.AreEqual(20095, pl.getValue(fAge, mn.dtSeasonEnd, 1000), 0.00001);
+      for (int iT = 0; iT < pl.iTalent.Length; iT++) pl.iTalent[iT] = 9;
+      Assert.AreEqual(17583, pl.getValue(fAge, mn.dtSeasonEnd, 1000), 0.00001);
     }
 
     [TestMethod]
