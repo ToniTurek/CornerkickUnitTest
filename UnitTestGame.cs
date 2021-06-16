@@ -446,12 +446,34 @@ namespace CornerkickUnitTest
         sbyte iAction = gameTest.ai.getPlayerAction(plOff2, out fPlAction, false, 10);
         //Assert.AreEqual(fChance[iRelDist], fPlAction[0], 0.002, "ChanceShoot");
       }
+    }
 
-      gameTest.iStandard = 2;
-      float[] fPlActionFreekick;
-      sbyte iActionFk = gameTest.ai.getPlayerAction(plOff2, out fPlActionFreekick, false, 10);
-      //Assert.AreEqual(0.0340206772, fPlActionFreekick[0], 0.2, "ChanceShoot Freekick");
-      gameTest.next();
+    [TestMethod]
+    public void TestChancesFreekick()
+    {
+      for (int j = 0; j < 100; j++) {
+        float [] fDistRel       = new float [] { 1.5f,               1.3f,               1.1f                };
+        double[] fChanceFkShoot = new double[] { 0.2523913085460663, 0.3319043219089508, 0.42532700300216675 };
+        for (int i = 0; i < fDistRel.Length; i++) {
+          CornerkickGame.Game gameTest = game.tl.getDefaultGame();
+
+          gameTest.next();
+          while (gameTest.iStandardCounter > 0) gameTest.next();
+
+          gameTest.ball.ptPos = new Point((int)(gameTest.ptBox.X * fDistRel[i]), 0);
+          gameTest.iStandard = -2;
+          gameTest.iStandardCounter = 1;
+
+          gameTest.doFreekick(false);
+
+          Assert.AreEqual(true, gameTest.ball.plAtBall != null);
+
+          float[] fPlActionFreekick;
+          gameTest.ai.getPlayerAction(gameTest.ball.plAtBall, out fPlActionFreekick, iReceiverIx: 10);
+          Assert.AreEqual(fChanceFkShoot[i], fPlActionFreekick[0], 0.0001, "ChanceShoot Freekick at dist = " + fDistRel[i].ToString("0.0") + " x Box");
+          gameTest.next();
+        }
+      }
     }
 
     [TestMethod]
