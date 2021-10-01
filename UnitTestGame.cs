@@ -401,6 +401,27 @@ namespace CornerkickUnitTest
     }
 
     [TestMethod]
+    public void TestDuelStepReduction()
+    {
+      byte iSkillDuelDef = 8;
+      byte iSkillDuelOff = 8;
+      float fTacticAggr = 0f;
+      float fDuel;
+
+      fDuel = CornerkickGame.AI.getChanceDuelWin(iSkillDuelDef, iSkillDuelOff, fTacticAggr, iTackleSector: 0);
+      Assert.AreEqual(1.40625f, CornerkickGame.AI.getDuelStepReduction(fDuel, rndDuel: 0.5), 0.001f);
+
+      fDuel = CornerkickGame.AI.getChanceDuelWin(iSkillDuelDef, iSkillDuelOff, fTacticAggr, iTackleSector: 1);
+      Assert.AreEqual(1.11111f, CornerkickGame.AI.getDuelStepReduction(fDuel, rndDuel: 0.5), 0.001f);
+
+      fDuel = CornerkickGame.AI.getChanceDuelWin(iSkillDuelDef, iSkillDuelOff, fTacticAggr, iTackleSector: 2);
+      Assert.AreEqual(0.560942, CornerkickGame.AI.getDuelStepReduction(fDuel, rndDuel: 0.5), 0.001f);
+
+      fDuel = CornerkickGame.AI.getChanceDuelWin(iSkillDuelDef, iSkillDuelOff, fTacticAggr, iTackleSector: 3);
+      Assert.AreEqual(0.35156f, CornerkickGame.AI.getDuelStepReduction(fDuel, rndDuel: 0.5), 0.001f);
+    }
+
+    [TestMethod]
     public void TestChances3vs1()
     {
       CornerkickGame.Game gameTest = game.tl.getDefaultGame();
