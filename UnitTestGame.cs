@@ -1954,7 +1954,7 @@ namespace CornerkickUnitTest
       const bool bTestIO = false;
       const int iLand = 36;
 
-      CornerkickManager.Main mn = new CornerkickManager.Main(bContinuingTime: true, iTrainingsPerDay: 2, iTrainingsPerDayMax: 3);
+      CornerkickManager.Main mn = new CornerkickManager.Main(bContinuingTime: true, iTrainingsPerDay: 2, iTrainingsPerDayMax: 3, bWorldCup: true);
 
       //mn.setNewSeason();
 
