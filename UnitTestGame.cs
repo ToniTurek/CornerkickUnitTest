@@ -2632,8 +2632,8 @@ namespace CornerkickUnitTest
       double fMood = 0.0;
       for (int iN = 0; iN < iRepeat; iN++) {
         mn.ltTransfer.Clear();
-        //CornerkickManager.Player.Contract ctrNew = mn.tl.negotiatePlayerContract(pl, clb, 2, iSalaryOffer: (int)(ctrReq.iSalary * 0.9), iBonusPlayOffer: ctrReq.iPlay, iBonusGoalOffer: ctrReq.iGoal, iGamesPerSeason: iGamesPerSeason);
-        //fMood += ctrNew.fMood;
+        CornerkickManager.Player.Contract ctrNew = mn.plt.negotiatePlayerContract(pl, clb, 2, iSalaryOffer: (int)(ctrReq.iSalary * 0.9), iBonusPlayOffer: ctrReq.iPlay, iBonusGoalOffer: ctrReq.iGoal, iGamesPerSeason: iGamesPerSeason);
+        fMood += ctrNew.fMood;
       }
       fMood /= iRepeat;
 
@@ -2645,8 +2645,8 @@ namespace CornerkickUnitTest
       fMood = 0.0;
       for (int iN = 0; iN < iRepeat; iN++) {
         mn.ltTransfer.Clear();
-        //CornerkickManager.Player.Contract ctrNew = mn.tl.negotiatePlayerContract(pl, clb, 2, iSalaryOffer: (int)(ctrReq.iSalary * 0.9), iBonusPlayOffer: (int)(ctrReq.iPlay * 0.9), iBonusGoalOffer: (int)(ctrReq.iGoal * 0.9), iGamesPerSeason: iGamesPerSeason);
-        //fMood += ctrNew.fMood;
+        CornerkickManager.Player.Contract ctrNew = mn.plt.negotiatePlayerContract(pl, clb, 2, iSalaryOffer: (int)(ctrReq.iSalary * 0.9), iBonusPlayOffer: (int)(ctrReq.iPlay * 0.9), iBonusGoalOffer: (int)(ctrReq.iGoal * 0.9), iGamesPerSeason: iGamesPerSeason);
+        fMood += ctrNew.fMood;
       }
       fMood /= iRepeat;
 
