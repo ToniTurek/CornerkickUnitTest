@@ -696,14 +696,17 @@ namespace CornerkickUnitTest
             gameTest.next();
           }
 
+          // Finalize shoot
+          gameTest.next();
+
           // Check that penalty is not set anymore
           Assert.AreEqual(false, Math.Abs(gameTest.iStandard) == 1);
 
           iG += gameTest.data.team[iHA].iGoals;
         }
 
-        // Check penalty success (81% - 85%)
-        Assert.AreEqual(0.83, iG / (float)nPenalties, 0.02);
+        // Check penalty success (79% .. 81% .. 83%)
+        Assert.AreEqual(0.81, iG / (float)nPenalties, 0.02);
       }
     }
 
@@ -725,7 +728,7 @@ namespace CornerkickUnitTest
       int iHA = -1;
       while (gameTest.next() > 0) {
         if (gameTest.data.bShootout) {
-          if (iShootoutCounter % 2 == 0) {
+          if (iShootoutCounter % 3 == 0) {
             if (iHA < 0) iHA = gameTest.ball.plAtBall.iHA;
 
             Assert.AreEqual(gameTest.iPenaltyX, gameTest.ball.ptPos.X);
