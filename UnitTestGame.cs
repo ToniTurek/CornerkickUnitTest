@@ -850,21 +850,15 @@ namespace CornerkickUnitTest
       if (bManMarking) iFormationIx = 7;
 
       Random rnd = new Random();
-
       CornerkickManager.Main mn = new CornerkickManager.Main();
-
       string sTestResultLog = Path.Combine(mn.settings.sHomeDir, "Test_Results.txt");
-
       DateTime dtStart = DateTime.Now;
+      PostGamesData pgd = new PostGamesData();
+
+      PostGamesHeader(sTestResultLog, dtStart, nGames, iPlayerSkillsH, iPlayerSkillsA);
+
       Stopwatch sw = new Stopwatch();
       sw.Start();
-
-      StreamWriter swLog = new StreamWriter(sTestResultLog, true);
-
-      swLog.WriteLine("");
-      swLog.WriteLine("##################################################################################################");
-      swLog.WriteLine("### Start date: " + dtStart + ". Performed games: " + nGames.ToString() + ", player skill (H/A): " + iPlayerSkillsH.ToString() + "/" + iPlayerSkillsA.ToString());
-      swLog.Close();
 
 #if _DoE
       float fWf1 = 0.5f;
@@ -880,48 +874,15 @@ namespace CornerkickUnitTest
 
         while (fWf2 < fWfMax) { // Second loop
 #endif
-          int iGH = 0;
-          int iGA = 0;
-          int iShootsH = 0;
-          int iShootsA = 0;
-          double fChanceGoalH = 0.0;
-          double fChanceGoalA = 0.0;
-          double fShootDistH = 0.0;
-          double fShootDistA = 0.0;
           int[] iShootRange      = new int[8];
           int[] iShootRangeGoals = new int[8];
-          int iV = 0;
-          int iD = 0;
-          int iL = 0;
-          uint iStepsH = 0;
-          uint iStepsA = 0;
-          uint iDuelH = 0;
-          uint iDuelA = 0;
-          uint iPossH = 0;
-          uint iPossA = 0;
-          uint iPassH = 0;
-          uint iPassA = 0;
-          uint iOffsiteH = 0;
-          uint iOffsiteA = 0;
           double[] fGrade = new double[11]; // Average grade depending on position
-          int[] iGradeDist = new int[6]; // Distribution of grades
-          int[][][] iScorerField = new int[2][][]; // Scorer counter dependend on pitch position [shooter/assist][X][Y]
-          for (int j = 0; j < iScorerField.Length; j++) {
-            iScorerField[j] = new int[6][];
-            for (int jj = 0; jj < iScorerField[j].Length; jj++) iScorerField[j][jj] = new int[5];
-          }
-          int iAssists = 0;
-          double fFreshDrop = 0.0;
-          double fFreshDropHt = 0.0;
-          int iInjuries = 0;
-          int iInjuriesPlayer = 0;
 
 #if _ML
           double fWfPass = 1f;
           double fWfPassCounter = 0;
 #endif
 
-          int[] iGamesGrd = new int[fGrade.Length];
           for (int iG = 0; iG < nGames; iG++) {
             // Create default game
             CornerkickGame.Game gameTest = game.tl.getDefaultGame(iPlayerSkillsH: iPlayerSkillsH, iPlayerSkillsA: iPlayerSkillsA);
@@ -999,15 +960,6 @@ namespace CornerkickUnitTest
               }
             }
 
-            // Get ave. freshness pre-game
-            double fFreshAvePre = 0.0;
-            for (byte iHA = 0; iHA < 2; iHA++) {
-              for (byte iPl = 0; iPl < gameTest.data.nPlStart; iPl++) {
-                fFreshAvePre += gameTest.player[iHA][iPl].fFresh;
-              }
-            }
-            fFreshAvePre /= (2 * gameTest.data.nPlStart);
-
             const int iBallCounterMax = 200;
             int iBallCounter = 0;
             Point ptBall = gameTest.ball.ptPos;
@@ -1017,19 +969,6 @@ namespace CornerkickUnitTest
             int iShootRes = -1;
             int iGameTestRet = 0;
             while ((iGameTestRet = gameTest.next()) > 0) {
-              // Half-time
-              if (iGameTestRet == 2) {
-                // Get ave. freshness half-time
-                double fFreshAvePostHt = 0.0;
-                for (byte iHA = 0; iHA < 2; iHA++) {
-                  for (byte iPl = 0; iPl < gameTest.data.nPlStart; iPl++) {
-                    fFreshAvePostHt += gameTest.player[iHA][iPl].fFresh;
-                  }
-                }
-                fFreshAvePostHt /= (2 * gameTest.data.nPlStart);
-                fFreshDropHt += fFreshAvePre - fFreshAvePostHt;
-              }
-
               // Test remaining steps
               if (bTestPlayerStep) {
                 for (byte iHA = 0; iHA < 2; iHA++) {
@@ -1097,6 +1036,7 @@ namespace CornerkickUnitTest
               CornerkickGame.Game.State stateLast1 = gameTest.data.ltState[gameTest.data.ltState.Count - 2];
               CornerkickGame.Game.State stateLast  = gameTest.data.ltState[gameTest.data.ltState.Count - 1];
               CornerkickGame.Game.Shoot shoot = stateLast.shoot;
+                /*
               if (shoot.plShoot != null) {
                 iShootRes = shoot.iResult;
 
@@ -1107,10 +1047,12 @@ namespace CornerkickUnitTest
                   Debug.WriteLine("");
                 }
               }
+              */
 
               // Test goal if goals difer from last step
               if (iGoalH != gameTest.data.team[0].iGoals ||
                   iGoalA != gameTest.data.team[1].iGoals) {
+                /*
                 if (shoot.plShoot != null && shoot.iResult == 1) {
                   float fDistTmp = CornerkickGame.Tool.getDistanceToGoal(shoot.plShoot, gameTest.ptPitch.X, gameTest.fConvertDist2Meter)[0];
                   if (fDistTmp > 35) {
@@ -1119,32 +1061,8 @@ namespace CornerkickUnitTest
                     Debug.WriteLine("");
                   }
                 }
-
+                */
                 testGoal(gameTest, iGoalH != gameTest.data.team[0].iGoals, iGoalH, iGoalA);
-
-                // Count scorer position on field
-                for (byte jj = 0; jj < 2; jj++) {
-                  CornerkickGame.Player plField = shoot.plShoot;
-                  if (jj > 0) plField = shoot.plAssist;
-
-                  if (plField == null) continue;
-
-                  Point ptFieldPos = CornerkickGame.Tool.transformPosition(plField.ptPos, gameTest.ptPitch.X, plField.iHA == 1);
-                  int iFieldPosX = ptFieldPos.X / 10;
-                  if (iFieldPosX >= iScorerField[0].Length) iFieldPosX = iScorerField[0].Length - 1;
-
-                  if (iFieldPosX >= 0) {
-                    int iFieldPosY = 2;
-                    if       (ptFieldPos.Y <= -gameTest.ptPitch.Y * (4f / 5f)) iFieldPosY = 0;
-                    else if  (ptFieldPos.Y <= -gameTest.ptPitch.Y * (2f / 5f)) iFieldPosY = 1;
-                    else if  (ptFieldPos.Y >= +gameTest.ptPitch.Y * (4f / 5f)) iFieldPosY = 4;
-                    else if  (ptFieldPos.Y >= +gameTest.ptPitch.Y * (2f / 5f)) iFieldPosY = 3;
-                
-                    iScorerField[jj][iFieldPosX][iFieldPosY]++;
-                  }
-
-                  if (jj > 0) iAssists++;
-                }
               }
 
               iGoalH = gameTest.data.team[0].iGoals;
@@ -1166,16 +1084,6 @@ namespace CornerkickUnitTest
             //Debug.WriteLine(" Game " + (iG + 1).ToString()  + ". Result: " + gameTest.data.team[0].iGoals.ToString() + ":" + gameTest.data.team[1].iGoals.ToString() + ", " + gameTest.data.tsMinute.TotalMinutes.ToString("0") + ":" + gameTest.data.tsMinute.Seconds.ToString("00"));
 #endif
 
-            // Get ave. freshness post-game
-            double fFreshAvePost = 0.0;
-            for (byte iHA = 0; iHA < 2; iHA++) {
-              for (byte iPl = 0; iPl < gameTest.data.nPlStart; iPl++) {
-                fFreshAvePost += gameTest.player[iHA][iPl].fFresh;
-              }
-            }
-            fFreshAvePost /= (2 * gameTest.data.nPlStart);
-            fFreshDrop += fFreshAvePre - fFreshAvePost;
-
             // Check player experience
             for (byte iHA = 0; iHA < 2; iHA++) {
               for (byte iPl = 0; iPl < gameTest.player[iHA].Length; iPl++) {
@@ -1185,203 +1093,30 @@ namespace CornerkickUnitTest
               }
             }
 
-            // Count data
-            iGH += gameTest.data.team[0].iGoals;
-            iGA += gameTest.data.team[1].iGoals;
-
-            List<CornerkickGame.Game.Shoot> ltShootsH = CornerkickManager.UI.getShoots(gameTest.data.ltState, 0);
-            iShootsH += ltShootsH.Count;
-            foreach (CornerkickGame.Game.Shoot shoot in ltShootsH) {
-              float fShootDistTmp = CornerkickGame.Tool.getDistanceToGoal(shoot.plShoot, gameTest.ptPitch.X, gameTest.fConvertDist2Meter)[0];
-              fChanceGoalH += CornerkickGame.AI.getChanceShootGoal(shoot);
-              fShootDistH  += fShootDistTmp;
-
-              addShootToRange(fShootDistTmp, ref iShootRange, shoot.iResult, ref iShootRangeGoals);
-            }
-
-            List<CornerkickGame.Game.Shoot> ltShootsA = CornerkickManager.UI.getShoots(gameTest.data.ltState, 1);
-            iShootsA += ltShootsA.Count;
-            foreach (CornerkickGame.Game.Shoot shoot in ltShootsA) {
-              float fShootDistTmp = CornerkickGame.Tool.getDistanceToGoal(shoot.plShoot, gameTest.ptPitch.X, gameTest.fConvertDist2Meter)[0];
-              fChanceGoalA += CornerkickGame.AI.getChanceShootGoal(shoot);
-              fShootDistA  += fShootDistTmp;
-
-              addShootToRange(fShootDistTmp, ref iShootRange, shoot.iResult, ref iShootRangeGoals);
-            }
-
-            iDuelH += (uint)CornerkickManager.UI.getDuels(gameTest.data.ltState, 0).Count;
-            iDuelA += (uint)CornerkickManager.UI.getDuels(gameTest.data.ltState, 1).Count;
-
-            for (byte iPl = 0; iPl < gameTest.player[0].Length; iPl++) iStepsH += (uint)gameTest.player[0][iPl].iSteps;
-            for (byte iPl = 0; iPl < gameTest.player[1].Length; iPl++) iStepsA += (uint)gameTest.player[1][iPl].iSteps;
-
-            iPossH += (uint)gameTest.data.team[0].iPossession;
-            iPossA += (uint)gameTest.data.team[1].iPossession;
-
-            List<CornerkickGame.Game.Pass> lPassesH = CornerkickManager.UI.getPasses(gameTest.data.ltState, 0);
-            iPassH += (uint)lPassesH.Count;
-            List<CornerkickGame.Game.Pass> lPassesA = CornerkickManager.UI.getPasses(gameTest.data.ltState, 1);
-            iPassA += (uint)lPassesA.Count;
-
-            iOffsiteH += (uint)gameTest.data.team[0].iOffsite;
-            iOffsiteA += (uint)gameTest.data.team[1].iOffsite;
-
-            // Player grade
-            double[] fGradeTeamAve = new double[fGrade.Length];
-            int[] iPlG = new int[fGradeTeamAve.Length];
-            for (byte iHA = 0; iHA < 2; iHA++) {
-              foreach (CornerkickGame.Player plG in gameTest.player[iHA]) {
-                byte iPosGrd = CornerkickGame.Tool.getBasisPos(gameTest.tl.getPosRole(plG));
-                float fGrd = plG.getGrade(iPosGrd, 90);
-                if (fGrd > 0f) {
-                  fGradeTeamAve[iPosGrd - 1] += plG.getGrade(iPosGrd, 90);
-                  iGradeDist[(int)(fGrd - 1f)]++;
-                  iPlG[iPosGrd - 1]++;
-                }
-              }
-            }
-            for (byte iGrd = 0; iGrd < fGrade.Length; iGrd++) {
-              if (iPlG[iGrd] > 0) {
-                fGrade[iGrd] += fGradeTeamAve[iGrd] / iPlG[iGrd];
-                iGamesGrd[iGrd]++;
-              }
-            }
-
-            if      (gameTest.data.team[0].iGoals > gameTest.data.team[1].iGoals) iV++;
-            else if (gameTest.data.team[0].iGoals < gameTest.data.team[1].iGoals) iL++;
-            else                                                                  iD++;
-
-            //Debug.WriteLine(gameTest.ai.iPassCounter.ToString() + ", " + (gameTest.ai.fPassTime / 1000.0).ToString("0.000s") + ", " + (gameTest.ai.fPassTime / gameTest.ai.iPassCounter).ToString("0.000ms/call"));
-
-            // Get injuries
-            for (byte iHA = 0; iHA < 2; iHA++) {
-              for (byte iPl = 0; iPl < gameTest.player[iHA].Length; iPl++) {
-                if (gameTest.player[iHA][iPl] == null) continue;
-
-                if (gameTest.player[iHA][iPl].injury != null) iInjuries++;
-                iInjuriesPlayer++;
-              }
-            }
+            CollectPostGamesData(gameTest.data, pgd);
           } // for each game
-          
+
           // Stop stopwatch
           sw.Stop();
 
-          fShootDistH /= iShootsH;
-          fShootDistA /= iShootsA;
-
-          for (byte iGrd = 0; iGrd < fGrade.Length; iGrd++) {
-            if (iGamesGrd[iGrd] > 0) fGrade[iGrd] /= iGamesGrd[iGrd];
-          }
-
-          Debug.WriteLine("");
-          Debug.WriteLine("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
-          Debug.WriteLine("OOO        Statistics        OOO");
-          Debug.WriteLine("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
-          
-          Trace.Listeners.Add(new TextWriterTraceListener(sTestResultLog));
-          Trace.AutoFlush = true;
-          Trace.Indent();
-
-          // Assist field
-          Trace.WriteLine("Goals/Assists field:");
-          for (int jY = 0; jY < iScorerField[0][0].Length; jY++) { // for each Y
-            for (int jX = 0; jX < iScorerField[0].Length; jX++) { // for each X
-              Trace.Write((iScorerField[0][jX][jY] / (float)(iGH + iGA)).ToString(" 00.00%") + "/" + (iScorerField[1][jX][jY] / (float)iAssists).ToString("00.00% "));
-            }
-            Trace.WriteLine("");
-          }
-          Trace.WriteLine("");
-
-          Trace.WriteLine("                Ave.  /  H/A");
-          Trace.WriteLine("        goals: " + ((iGH          + iGA)          / (2.0 * nGames)).ToString("0.0000").PadLeft(6) + " / " + (iGH          / (double)iGA)         .ToString("0.0000"));
-          Trace.WriteLine("  chance goal: " + ((fChanceGoalH + fChanceGoalA) / (2.0 * nGames)).ToString("0.0000").PadLeft(6) + " / " + (fChanceGoalH /         fChanceGoalA).ToString("0.0000"));
-          Trace.WriteLine("       shoots: " + ((iShootsH     + iShootsA)     / (2.0 * nGames)).ToString("0.0000").PadLeft(6) + " / " + (iShootsH     / (double)iShootsA)    .ToString("0.0000"));
-          Trace.WriteLine("  shoot dist.: " + ((fShootDistH  + fShootDistA)  / (2.0         )).ToString("0.000") .PadLeft(6) + " / " + (fShootDistH  /         fShootDistA) .ToString("0.0000"));
-          Trace.WriteLine("        duels: " + ((iDuelH       + iDuelA)       / (2.0 * nGames)).ToString("0.000") .PadLeft(6) + " / " + (iDuelH       / (double)iDuelA)      .ToString("0.0000"));
-          Trace.WriteLine("        steps: " + ((iStepsH      + iStepsA)      / (2.0 * nGames)).ToString("0 ")    .PadLeft(6) + " / " + (iStepsH      / (double)iStepsA)     .ToString("0.0000"));
-          Trace.WriteLine("   possession: " + ((iPossH       + iPossA)       / (2.0 * nGames)).ToString("0.0")   .PadLeft(6) + " / " + (iPossH       / (double)iPossA)      .ToString("0.0000"));
-          Trace.WriteLine("       passes: " + ((iPassH       + iPassA)       / (2.0 * nGames)).ToString("0.00")  .PadLeft(6) + " / " + (iPassH       / (double)iPassA)      .ToString("0.0000"));
-          Trace.WriteLine("     offsites: " + ((iOffsiteH    + iOffsiteA)    / (2.0 * nGames)).ToString("0.0000").PadLeft(6) + " / " + (iOffsiteH    / (double)iOffsiteA)   .ToString("0.0000"));
-          Trace.WriteLine("   fresh drop: " + (fFreshDrop / nGames).ToString("0.000%") + ", Ht: " + (fFreshDropHt / nGames).ToString("0.000%"));
-          Trace.WriteLine("     injuries: " + (iInjuries / (double)iInjuriesPlayer).ToString("0.000%"));
-          Trace.WriteLine(" +-------------------------------------------------------+");
-          Trace.WriteLine(" |                         GRADES                        |");
-          Trace.WriteLine(" +-------------------------------------------------------+");
-          Trace.WriteLine(" +------+------+------+------+------+------+------+------+");
-          Trace.WriteLine(" |  KP  |  CD  |  SD  |  DM  |  SM  |  OM  |  SF  |  CF  |");
-          Trace.WriteLine(" +------+------+------+------+------+------+------+------+");
-          Trace.Write    (" | ");
-          for (byte iGrd = 0; iGrd < fGrade.Length; iGrd++) {
-            if (iGrd == 2 || iGrd == 5 || iGrd == 8) {
-              Trace.Write(((fGrade[iGrd] + fGrade[iGrd + 1]) / 2f).ToString("0.00") + " | ");
-              iGrd++;
-            } else {
-              Trace.Write(fGrade[iGrd].ToString("0.00") + " | ");
-            }
-          }
-          Trace.WriteLine("");
-          Trace.WriteLine(" +------+------+------+------+------+------+------+------+");
-          int iGradeDistTotal = 0;
-          foreach (int iGrd in iGradeDist) iGradeDistTotal += iGrd;
-          Trace.WriteLine(" +-------+-------+-------+-------+-------+-------+");
-          Trace.WriteLine(" | < 1.5 | < 2.5 | < 3.5 | < 4.5 | < 5.5 | > 5.5 |");
-          Trace.WriteLine(" +-------+-------+-------+-------+-------+-------+");
-          Trace.Write    (" | ");
-          for (byte iGrd = 0; iGrd < iGradeDist.Length; iGrd++) {
-            Trace.Write((iGradeDist[iGrd] / (double)iGradeDistTotal).ToString("00.0%") + " | ");
-          }
-          Trace.WriteLine("");
-          Trace.WriteLine(" +-------+-------+-------+-------+-------+-------+");
-
-          Trace.WriteLine(" +-----------------------------------------------------------------------+");
-          Trace.WriteLine(" |                                 SHOOTS                                |");
-          Trace.WriteLine(" +-----------------------------------------------------------------------+");
-          Trace.WriteLine(" +--------+--------+--------+--------+--------+--------+--------+--------+");
-          Trace.WriteLine(" |  < 5m  | < 10m  | < 15m  | < 20m  | < 25m  | < 30m  | < 35m  | > 35m  |");
-          Trace.WriteLine(" +--------+--------+--------+--------+--------+--------+--------+--------+");
-          string sShootRange = " | ";
-          for (int iSht = 0; iSht < iShootRange.Length; iSht++) {
-            sShootRange += (iShootRange[iSht] / (double)(iShootsH + iShootsA)).ToString("00.00%") + " | ";
-          }
-          Trace.WriteLine(sShootRange);
-          Trace.WriteLine(" +--------+--------+--------+--------+--------+--------+--------+--------+");
-
-          string sShootRangeG = " | ";
-          for (int iSht = 0; iSht < iShootRangeGoals.Length; iSht++) {
-            sShootRangeG += (iShootRangeGoals[iSht] / (double)(iGH + iGA)).ToString("00.00%") + " | ";
-          }
-          Trace.WriteLine(sShootRangeG);
-          Trace.WriteLine(" +--------+--------+--------+--------+--------+--------+--------+--------+");
-          
-          Trace.WriteLine("Total Goals: " + iGH.ToString() + ":" + iGA.ToString());
-          Trace.WriteLine("Win Home/Draw/Away: " + iV.ToString() + "/" + iD.ToString() + "/" + iL.ToString());
-#if _ML
-          Debug.WriteLine("fWfPass: " + fWfPass.ToString("0.0000"));
-#endif
-          int iElapsedMin = (int)(sw.ElapsedMilliseconds / 60000.0);
-          Trace.WriteLine("Finish date: " + DateTime.Now + ". Elapsed time: " + iElapsedMin.ToString("0m") + ", " + ((sw.ElapsedMilliseconds / 1000.0) - (iElapsedMin * 60)).ToString("00s"));
-          Trace.WriteLine("");
-          Trace.Unindent();
-          Trace.Flush();
-          Trace.Listeners.Clear();
+          PostGames(sTestResultLog, pgd, iPlayerSkillsH, iPlayerSkillsA, sw.ElapsedMilliseconds);
 
 #if !_DoE
           if (iPlayerSkillsH == iPlayerSkillsA && iPlayerSkillSpeedMax >= iPlayerSkillsH) {
-            if (iGA          > 0) Assert.AreEqual(1.0, iGH          / (double)iGA,          0.2);
-            if (iShootsA     > 0) Assert.AreEqual(1.0, iShootsH     / (double)iShootsA,     0.2);
-            if (fChanceGoalA > 0) Assert.AreEqual(1.0, fChanceGoalH /         fChanceGoalA, 0.2);
-            if (fShootDistA  > 0) Assert.AreEqual(1.0, fShootDistH  /         fShootDistA,  0.2);
-            if (iDuelA       > 0) Assert.AreEqual(1.0, iDuelH       / (double)iDuelA,       0.2);
-            if (iStepsA      > 0) Assert.AreEqual(1.0, iStepsH      / (double)iStepsA,      0.2);
-            if (iPossA       > 0) Assert.AreEqual(1.0, iPossH       / (double)iPossA,       0.2);
-            if (iOffsiteA    > 0) Assert.AreEqual(1.0, iOffsiteH    / (double)iOffsiteA,    0.2);
+            if (pgd.iGA          > 0) Assert.AreEqual(1.0, pgd.iGH          / (double)pgd.iGA,          0.2);
+            if (pgd.iShootsA     > 0) Assert.AreEqual(1.0, pgd.iShootsH     / (double)pgd.iShootsA,     0.2);
+            if (pgd.fChanceGoalA > 0) Assert.AreEqual(1.0, pgd.fChanceGoalH /         pgd.fChanceGoalA, 0.2);
+            if (pgd.fShootDistA  > 0) Assert.AreEqual(1.0, pgd.fShootDistH  /         pgd.fShootDistA,  0.2);
+            if (pgd.iDuelA       > 0) Assert.AreEqual(1.0, pgd.iDuelH       / (double)pgd.iDuelA,       0.2);
+            if (pgd.iStepsA      > 0) Assert.AreEqual(1.0, pgd.iStepsH      / (double)pgd.iStepsA,      0.2);
+            if (pgd.iPossA       > 0) Assert.AreEqual(1.0, pgd.iPossH       / (double)pgd.iPossA,       0.2);
+            if (pgd.iOffsiteA    > 0) Assert.AreEqual(1.0, pgd.iOffsiteH    / (double)pgd.iOffsiteA,    0.2);
           }
 
           // Test grades
           if (bTestGrade) {
-            for (byte iGrd = 0; iGrd < fGrade.Length; iGrd++) {
-              if (fGrade[iGrd] > 0.0) Assert.AreEqual(3.5, fGrade[iGrd], 0.2, "Grade: " + iGrd.ToString());
+            for (byte iGrd = 0; iGrd < pgd.fGrade.Length; iGrd++) {
+              if (pgd.fGrade[iGrd] > 0.0) Assert.AreEqual(3.5, pgd.fGrade[iGrd], 0.2, "Grade: " + iGrd.ToString());
             }
           }
 #endif
@@ -1389,7 +1124,7 @@ namespace CornerkickUnitTest
 #if _DoE
           fWf2 += fWfStep;
         }
-        
+
         fWf1 += fWfStep;
       }
 #endif
@@ -1400,6 +1135,355 @@ namespace CornerkickUnitTest
       int iIx = Math.Min((int)(fShootDist / 5f), iShootRange.Length - 1);
       iShootRange[iIx]++;
       if (iShootResult == 1) iShootRangeGoal[iIx]++;
+    }
+
+    public void PostGamesHeader(string sTestResultLog, DateTime dtStart, int nGames, int iPlayerSkillsH, int iPlayerSkillsA)
+    {
+      StreamWriter swLog = new StreamWriter(sTestResultLog, true);
+
+      swLog.WriteLine("");
+      swLog.WriteLine("##################################################################################################");
+      swLog.WriteLine("### Start date: " + dtStart + ". Performed games: " + nGames.ToString() + ", player skill (H/A): " + iPlayerSkillsH.ToString() + "/" + iPlayerSkillsA.ToString());
+      swLog.Close();
+    }
+
+    internal class PostGamesData
+    {
+      internal int nGames = 0;
+      internal int iGH = 0;
+      internal int iGA = 0;
+      internal int iShootsH = 0;
+      internal int iShootsA = 0;
+      internal double fChanceGoalH = 0.0;
+      internal double fChanceGoalA = 0.0;
+      internal double fShootDistH = 0.0;
+      internal double fShootDistA = 0.0;
+      internal int[] iShootRange      = new int[8];
+      internal int[] iShootRangeGoals = new int[8];
+      internal int iV = 0;
+      internal int iD = 0;
+      internal int iL = 0;
+      internal uint iStepsH = 0;
+      internal uint iStepsA = 0;
+      internal uint iDuelH = 0;
+      internal uint iDuelA = 0;
+      internal uint iCardYellowH = 0;
+      internal uint iCardYellowA = 0;
+      internal uint iCardYelRedH = 0;
+      internal uint iCardYelRedA = 0;
+      internal uint iCardRedH = 0;
+      internal uint iCardRedA = 0;
+      internal uint iPossH = 0;
+      internal uint iPossA = 0;
+      internal uint iPassH = 0;
+      internal uint iPassA = 0;
+      internal uint iOffsiteH = 0;
+      internal uint iOffsiteA = 0;
+      internal double[] fGrade = new double[11]; // Average grade depending on position
+      internal int[] iGradeDist = new int[6]; // Distribution of grades
+      internal int[] iGamesGrd;
+      internal int[][][] iScorerField = new int[2][][]; // Scorer counter dependend on pitch position [shooter/assist][X][Y]
+      internal int iAssists = 0;
+      internal double fFreshDrop = 0.0;
+      internal double fFreshDropHt = 0.0;
+      internal int iInjuries = 0;
+      internal int iInjuriesPlayer = 0;
+
+      internal PostGamesData()
+      {
+        for (int j = 0; j < iScorerField.Length; j++) {
+          iScorerField[j] = new int[6][];
+          for (int jj = 0; jj < iScorerField[j].Length; jj++) iScorerField[j][jj] = new int[5];
+        }
+
+        iGamesGrd = new int[fGrade.Length];
+      }
+    }
+    private void CollectPostGamesData(List<CornerkickManager.Main.GameDataPlus> ltGameDataPlus, PostGamesData pgd)
+    {
+      List<CornerkickGame.Game.Data> ltGameData = new List<CornerkickGame.Game.Data>();
+      foreach (CornerkickManager.Main.GameDataPlus gdp in ltGameDataPlus) ltGameData.Add(gdp.gd);
+
+      CollectPostGamesData(ltGameData, pgd);
+    }
+    private void CollectPostGamesData(List<CornerkickGame.Game.Data> ltGameData, PostGamesData pgd)
+    {
+      foreach (CornerkickGame.Game.Data gd in ltGameData) CollectPostGamesData(gd, pgd);
+    }
+    private void CollectPostGamesData(CornerkickGame.Game.Data gd, PostGamesData pgd)
+    {
+      pgd.nGames++;
+
+      CornerkickGame.Game gameDefault = game.tl.getDefaultGame();
+
+      // Get ave. freshness pre-game
+      double fFreshAvePre = 0.0;
+      for (byte iHA = 0; iHA < 2; iHA++) {
+        for (byte iPl = 0; iPl < gd.nPlStart; iPl++) {
+          fFreshAvePre += gd.ltState[0].player[iHA][iPl].fFresh;
+        }
+      }
+      fFreshAvePre /= (2 * gd.nPlStart);
+
+      bool bHalfTime = false;
+      foreach (CornerkickGame.Game.State state in gd.ltState) {
+        if (!bHalfTime) {
+          foreach (CornerkickGame.Game.Comment ct in state.ltComment) {
+            if (ct.sText.Contains("Ende der ersten Halbzeit")) {
+              // Get ave. freshness half-time
+              double fFreshAvePostHt = 0.0;
+              for (byte iHA = 0; iHA < 2; iHA++) {
+                for (byte iPl = 0; iPl < gd.nPlStart; iPl++) {
+                  fFreshAvePostHt += state.player[iHA][iPl].fFresh;
+                }
+              }
+              fFreshAvePostHt /= (2 * gd.nPlStart);
+              pgd.fFreshDropHt += fFreshAvePre - fFreshAvePostHt;
+
+              bHalfTime = true;
+
+              break;
+            }
+          }
+        }
+
+        CornerkickGame.Game.Shoot shoot = state.shoot;
+
+        // Count scorer position on field
+        if (shoot.iResult == 1 && shoot.bFinished) {
+          for (byte jj = 0; jj < 2; jj++) {
+            CornerkickGame.Player plField = shoot.plShoot;
+            if (jj > 0) plField = shoot.plAssist;
+
+            if (plField == null) continue;
+
+            Point ptFieldPos = CornerkickGame.Tool.transformPosition(plField.ptPos, gameDefault.ptPitch.X, plField.iHA == 1);
+            int iFieldPosX = ptFieldPos.X / 10;
+            if (iFieldPosX >= pgd.iScorerField[0].Length) iFieldPosX = pgd.iScorerField[0].Length - 1;
+
+            if (iFieldPosX >= 0) {
+              int iFieldPosY = 2;
+              if       (ptFieldPos.Y <= -gameDefault.ptPitch.Y * (4f / 5f)) iFieldPosY = 0;
+              else if  (ptFieldPos.Y <= -gameDefault.ptPitch.Y * (2f / 5f)) iFieldPosY = 1;
+              else if  (ptFieldPos.Y >= +gameDefault.ptPitch.Y * (4f / 5f)) iFieldPosY = 4;
+              else if  (ptFieldPos.Y >= +gameDefault.ptPitch.Y * (2f / 5f)) iFieldPosY = 3;
+
+              pgd.iScorerField[jj][iFieldPosX][iFieldPosY]++;
+            }
+
+            if (jj > 0) pgd.iAssists++;
+          }
+        }
+      } // for each state
+
+      CornerkickGame.Game.State stateLast = gd.ltState[gd.ltState.Count - 1];
+
+      // Get ave. freshness post-game
+      double fFreshAvePost = 0.0;
+      for (byte iHA = 0; iHA < 2; iHA++) {
+        for (byte iPl = 0; iPl < gd.nPlStart; iPl++) {
+          fFreshAvePost += stateLast.player[iHA][iPl].fFresh;
+        }
+      }
+      fFreshAvePost /= (2 * gd.nPlStart);
+      pgd.fFreshDrop += fFreshAvePre - fFreshAvePost;
+
+      // Count data
+      pgd.iGH += gd.team[0].iGoals;
+      pgd.iGA += gd.team[1].iGoals;
+
+      List<CornerkickGame.Game.Shoot> ltShootsH = CornerkickManager.UI.getShoots(gd.ltState, 0);
+      pgd.iShootsH += ltShootsH.Count;
+      foreach (CornerkickGame.Game.Shoot shoot in ltShootsH) {
+        float fShootDistTmp = CornerkickGame.Tool.getDistanceToGoal(shoot.plShoot, gameDefault.ptPitch.X, gameDefault.fConvertDist2Meter)[0];
+        pgd.fChanceGoalH += CornerkickGame.AI.getChanceShootGoal(shoot);
+        pgd.fShootDistH  += fShootDistTmp;
+
+        addShootToRange(fShootDistTmp, ref pgd.iShootRange, shoot.iResult, ref pgd.iShootRangeGoals);
+      }
+
+      List<CornerkickGame.Game.Shoot> ltShootsA = CornerkickManager.UI.getShoots(gd.ltState, 1);
+      pgd.iShootsA += ltShootsA.Count;
+      foreach (CornerkickGame.Game.Shoot shoot in ltShootsA) {
+        float fShootDistTmp = CornerkickGame.Tool.getDistanceToGoal(shoot.plShoot, gameDefault.ptPitch.X, gameDefault.fConvertDist2Meter)[0];
+        pgd.fChanceGoalA += CornerkickGame.AI.getChanceShootGoal(shoot);
+        pgd.fShootDistA  += fShootDistTmp;
+
+        addShootToRange(fShootDistTmp, ref pgd.iShootRange, shoot.iResult, ref pgd.iShootRangeGoals);
+      }
+
+      // Count duels
+      pgd.iDuelH += (uint)CornerkickManager.UI.getDuels(gd.ltState, 0).Count;
+      pgd.iDuelA += (uint)CornerkickManager.UI.getDuels(gd.ltState, 1).Count;
+
+      // Count cards
+      List<CornerkickGame.Game.Duel> ltCards = CornerkickManager.UI.getCards(gd.ltState);
+      foreach (CornerkickGame.Game.Duel crd in ltCards) {
+        if (crd.plDef.iHA == 0) {
+          if      (crd.iResult == 3) pgd.iCardYellowH++;
+          else if (crd.iResult == 4) pgd.iCardYelRedH++;
+          else if (crd.iResult == 5) pgd.iCardRedH++;
+        } else if (crd.plDef.iHA == 1) {
+          if      (crd.iResult == 3) pgd.iCardYellowA++;
+          else if (crd.iResult == 4) pgd.iCardYelRedA++;
+          else if (crd.iResult == 5) pgd.iCardRedA++;
+        }
+      }
+
+      // Count steps
+      for (byte iPl = 0; iPl < stateLast.player[0].Length; iPl++) pgd.iStepsH += (uint)stateLast.player[0][iPl].iSteps;
+      for (byte iPl = 0; iPl < stateLast.player[1].Length; iPl++) pgd.iStepsA += (uint)stateLast.player[1][iPl].iSteps;
+
+      // Count possession
+      pgd.iPossH += (uint)gd.team[0].iPossession;
+      pgd.iPossA += (uint)gd.team[1].iPossession;
+
+      // Count passes
+      List<CornerkickGame.Game.Pass> lPassesH = CornerkickManager.UI.getPasses(gd.ltState, 0);
+      pgd.iPassH += (uint)lPassesH.Count;
+      List<CornerkickGame.Game.Pass> lPassesA = CornerkickManager.UI.getPasses(gd.ltState, 1);
+      pgd.iPassA += (uint)lPassesA.Count;
+
+      // Count offsites
+      pgd.iOffsiteH += (uint)gd.team[0].iOffsite;
+      pgd.iOffsiteA += (uint)gd.team[1].iOffsite;
+
+      // Player grade
+      double[] fGradeTeamAve = new double[pgd.fGrade.Length];
+      int[] iPlG = new int[fGradeTeamAve.Length];
+      for (byte iHA = 0; iHA < 2; iHA++) {
+        foreach (CornerkickGame.Player plG in stateLast.player[iHA]) {
+          byte iPosGrd = CornerkickGame.Tool.getBasisPos(gameDefault.tl.getPosRole(plG));
+          float fGrd = plG.getGrade(iPosGrd, 90);
+          if (fGrd > 0f) {
+            fGradeTeamAve[iPosGrd - 1] += plG.getGrade(iPosGrd, 90);
+            pgd.iGradeDist[(int)(fGrd - 1f)]++;
+            iPlG[iPosGrd - 1]++;
+          }
+        }
+      }
+      for (byte iGrd = 0; iGrd < pgd.fGrade.Length; iGrd++) {
+        if (iPlG[iGrd] > 0) {
+          pgd.fGrade[iGrd] += fGradeTeamAve[iGrd] / iPlG[iGrd];
+          pgd.iGamesGrd[iGrd]++;
+        }
+      }
+
+      if      (gd.team[0].iGoals > gd.team[1].iGoals) pgd.iV++;
+      else if (gd.team[0].iGoals < gd.team[1].iGoals) pgd.iL++;
+      else                                            pgd.iD++;
+
+      // Get injuries
+      for (byte iHA = 0; iHA < 2; iHA++) {
+        for (byte iPl = 0; iPl < stateLast.player[iHA].Length; iPl++) {
+          if (stateLast.player[iHA][iPl] == null) continue;
+
+          if (stateLast.player[iHA][iPl].injury != null) pgd.iInjuries++;
+          pgd.iInjuriesPlayer++;
+        }
+      }
+    }
+    private void PostGames(string sTestResultLog, PostGamesData pgd, byte iPlayerSkillsH, byte iPlayerSkillsA, long iElapsedMilliseconds)
+    {
+      pgd.fShootDistH /= pgd.iShootsH;
+      pgd.fShootDistA /= pgd.iShootsA;
+
+      for (byte iGrd = 0; iGrd < pgd.fGrade.Length; iGrd++) {
+        if (pgd.iGamesGrd[iGrd] > 0) pgd.fGrade[iGrd] /= pgd.iGamesGrd[iGrd];
+      }
+
+      Debug.WriteLine("");
+      Debug.WriteLine("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+      Debug.WriteLine("OOO        Statistics        OOO");
+      Debug.WriteLine("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+
+      Trace.Listeners.Add(new TextWriterTraceListener(sTestResultLog));
+      Trace.AutoFlush = true;
+      Trace.Indent();
+
+      // Assist field
+      Trace.WriteLine("Goals/Assists field:");
+      for (int jY = 0; jY < pgd.iScorerField[0][0].Length; jY++) { // for each Y
+        for (int jX = 0; jX < pgd.iScorerField[0].Length; jX++) { // for each X
+          Trace.Write((pgd.iScorerField[0][jX][jY] / (float)(pgd.iGH + pgd.iGA)).ToString(" 00.00%") + "/" + (pgd.iScorerField[1][jX][jY] / (float)pgd.iAssists).ToString("00.00% "));
+        }
+        Trace.WriteLine("");
+      }
+      Trace.WriteLine("");
+
+      Trace.WriteLine("                Ave.  /  H/A");
+      Trace.WriteLine("        goals: " + ((pgd.iGH          + pgd.iGA)          / (2.0 * pgd.nGames)).ToString("0.0000").PadLeft(6) + " / " + (pgd.iGH          / (double)pgd.iGA)         .ToString("0.0000"));
+      Trace.WriteLine("  chance goal: " + ((pgd.fChanceGoalH + pgd.fChanceGoalA) / (2.0 * pgd.nGames)).ToString("0.0000").PadLeft(6) + " / " + (pgd.fChanceGoalH /         pgd.fChanceGoalA).ToString("0.0000"));
+      Trace.WriteLine("       shoots: " + ((pgd.iShootsH     + pgd.iShootsA)     / (2.0 * pgd.nGames)).ToString("0.0000").PadLeft(6) + " / " + (pgd.iShootsH     / (double)pgd.iShootsA)    .ToString("0.0000"));
+      Trace.WriteLine("  shoot dist.: " + ((pgd.fShootDistH  + pgd.fShootDistA)  / (2.0             )).ToString("0.000") .PadLeft(6) + " / " + (pgd.fShootDistH  /         pgd.fShootDistA) .ToString("0.0000"));
+      Trace.WriteLine("        duels: " + ((pgd.iDuelH       + pgd.iDuelA)       / (2.0 * pgd.nGames)).ToString("0.000") .PadLeft(6) + " / " + (pgd.iDuelH       / (double)pgd.iDuelA)      .ToString("0.0000"));
+      Trace.WriteLine(" yellow cards: " + ((pgd.iCardYellowH + pgd.iCardYellowA) / (2.0 * pgd.nGames)).ToString("0.000") .PadLeft(6) + " / " + (pgd.iCardYellowH / (double)pgd.iCardYellowA).ToString("0.0000"));
+      Trace.WriteLine("    y/r cards: " + ((pgd.iCardYelRedH + pgd.iCardYelRedA) / (2.0 * pgd.nGames)).ToString("0.000") .PadLeft(6) + " / " + (pgd.iCardYelRedH / (double)pgd.iCardYelRedA).ToString("0.0000"));
+      Trace.WriteLine("    red cards: " + ((pgd.iCardRedH    + pgd.iCardRedA)    / (2.0 * pgd.nGames)).ToString("0.000") .PadLeft(6) + " / " + (pgd.iCardRedH    / (double)pgd.iCardRedA)   .ToString("0.0000"));
+      Trace.WriteLine("        steps: " + ((pgd.iStepsH      + pgd.iStepsA)      / (2.0 * pgd.nGames)).ToString("0 ")    .PadLeft(6) + " / " + (pgd.iStepsH      / (double)pgd.iStepsA)     .ToString("0.0000"));
+      Trace.WriteLine("   possession: " + ((pgd.iPossH       + pgd.iPossA)       / (2.0 * pgd.nGames)).ToString("0.0")   .PadLeft(6) + " / " + (pgd.iPossH       / (double)pgd.iPossA)      .ToString("0.0000"));
+      Trace.WriteLine("       passes: " + ((pgd.iPassH       + pgd.iPassA)       / (2.0 * pgd.nGames)).ToString("0.00")  .PadLeft(6) + " / " + (pgd.iPassH       / (double)pgd.iPassA)      .ToString("0.0000"));
+      Trace.WriteLine("     offsites: " + ((pgd.iOffsiteH    + pgd.iOffsiteA)    / (2.0 * pgd.nGames)).ToString("0.0000").PadLeft(6) + " / " + (pgd.iOffsiteH    / (double)pgd.iOffsiteA)   .ToString("0.0000"));
+      Trace.WriteLine("   fresh drop: " + (pgd.fFreshDrop / pgd.nGames).ToString("0.000%") + ", Ht: " + (pgd.fFreshDropHt / pgd.nGames).ToString("0.000%"));
+      Trace.WriteLine("     injuries: " + (pgd.iInjuries / (double)pgd.iInjuriesPlayer).ToString("0.000%"));
+      Trace.WriteLine(" +-------------------------------------------------------+");
+      Trace.WriteLine(" |                         GRADES                        |");
+      Trace.WriteLine(" +-------------------------------------------------------+");
+      Trace.WriteLine(" +------+------+------+------+------+------+------+------+");
+      Trace.WriteLine(" |  KP  |  CD  |  SD  |  DM  |  SM  |  OM  |  SF  |  CF  |");
+      Trace.WriteLine(" +------+------+------+------+------+------+------+------+");
+      Trace.Write    (" | ");
+      for (byte iGrd = 0; iGrd < pgd.fGrade.Length; iGrd++) {
+        if (iGrd == 2 || iGrd == 5 || iGrd == 8) {
+          Trace.Write(((pgd.fGrade[iGrd] + pgd.fGrade[iGrd + 1]) / 2f).ToString("0.00") + " | ");
+          iGrd++;
+        } else {
+          Trace.Write(pgd.fGrade[iGrd].ToString("0.00") + " | ");
+        }
+      }
+      Trace.WriteLine("");
+      Trace.WriteLine(" +------+------+------+------+------+------+------+------+");
+      int iGradeDistTotal = 0;
+      foreach (int iGrd in pgd.iGradeDist) iGradeDistTotal += iGrd;
+      Trace.WriteLine(" +-------+-------+-------+-------+-------+-------+");
+      Trace.WriteLine(" | < 1.5 | < 2.5 | < 3.5 | < 4.5 | < 5.5 | > 5.5 |");
+      Trace.WriteLine(" +-------+-------+-------+-------+-------+-------+");
+      Trace.Write    (" | ");
+      for (byte iGrd = 0; iGrd < pgd.iGradeDist.Length; iGrd++) {
+        Trace.Write((pgd.iGradeDist[iGrd] / (double)iGradeDistTotal).ToString("00.0%") + " | ");
+      }
+      Trace.WriteLine("");
+      Trace.WriteLine(" +-------+-------+-------+-------+-------+-------+");
+
+      Trace.WriteLine(" +-----------------------------------------------------------------------+");
+      Trace.WriteLine(" |                                 SHOOTS                                |");
+      Trace.WriteLine(" +-----------------------------------------------------------------------+");
+      Trace.WriteLine(" +--------+--------+--------+--------+--------+--------+--------+--------+");
+      Trace.WriteLine(" |  < 5m  | < 10m  | < 15m  | < 20m  | < 25m  | < 30m  | < 35m  | > 35m  |");
+      Trace.WriteLine(" +--------+--------+--------+--------+--------+--------+--------+--------+");
+      string sShootRange = " | ";
+      for (int iSht = 0; iSht < pgd.iShootRange.Length; iSht++) {
+        sShootRange += (pgd.iShootRange[iSht] / (double)(pgd.iShootsH + pgd.iShootsA)).ToString("00.00%") + " | ";
+      }
+      Trace.WriteLine(sShootRange);
+      Trace.WriteLine(" +--------+--------+--------+--------+--------+--------+--------+--------+");
+
+      string sShootRangeG = " | ";
+      for (int iSht = 0; iSht < pgd.iShootRangeGoals.Length; iSht++) {
+        sShootRangeG += (pgd.iShootRangeGoals[iSht] / (double)(pgd.iGH + pgd.iGA)).ToString("00.00%") + " | ";
+      }
+      Trace.WriteLine(sShootRangeG);
+      Trace.WriteLine(" +--------+--------+--------+--------+--------+--------+--------+--------+");
+
+      Trace.WriteLine("Total Goals: " + pgd.iGH.ToString() + ":" + pgd.iGA.ToString());
+      Trace.WriteLine("Win Home/Draw/Away: " + pgd.iV.ToString() + "/" + pgd.iD.ToString() + "/" + pgd.iL.ToString());
+      int iElapsedMin = (int)(iElapsedMilliseconds / 60000.0);
+      Trace.WriteLine("Finish date: " + DateTime.Now + ". Elapsed time: " + iElapsedMin.ToString("0m") + ", " + ((iElapsedMilliseconds / 1000.0) - (iElapsedMin * 60)).ToString("00s"));
+      Trace.WriteLine("");
+
+      Trace.Unindent();
+      Trace.Flush();
+      Trace.Listeners.Clear();
     }
 
     [TestMethod]
@@ -1771,44 +1855,80 @@ namespace CornerkickUnitTest
     [TestMethod]
     public void TestGamesParallel()
     {
-      const int nGames = 100;
-      const int iGameSpeed = 50; // [ms]
+      const int nGames = 5000;
+      const int nGamesPerChunk = 20; // Do nGamesPerChunk games in parallel 
+      const int iGameSpeed = 0; // [ms]
+      const byte iPlayerSkillsH = 8;
+      const byte iPlayerSkillsA = 8;
 
-      CornerkickManager.Main mn = new CornerkickManager.Main();
-      
-      List<CornerkickManager.Main.GameDataPlus> ltGameData = new List<CornerkickManager.Main.GameDataPlus>();
-      for (int iG = 0; iG < nGames; iG++) {
-        CornerkickGame.Game gameTest = game.tl.getDefaultGame(iClubIdStart: mn.ltClubs.Count, iPlIdStart: mn.ltPlayer.Count);
+      string sTestResultLog = "Test_Results_parallel.txt";
+      DateTime dtStart = DateTime.Now;
+      PostGamesData pgd = new PostGamesData();
 
-        // Set game speed
-        gameTest.data.iGameSpeed = iGameSpeed;
+      PostGamesHeader(sTestResultLog, dtStart, nGames, iPlayerSkillsH, iPlayerSkillsA);
 
-        CornerkickManager.Club clbH = new CornerkickManager.Club();
-        CornerkickManager.Club clbA = new CornerkickManager.Club();
-        clbH.ltTactic[0].formation = mn.ltFormationen[8];
-        clbA.ltTactic[0].formation = mn.ltFormationen[8];
-        foreach (CornerkickGame.Player pl in gameTest.player[0]) {
-          CornerkickManager.Player plMng = new CornerkickManager.Player() { plGame = pl };
-          mn.ltPlayer.Add(plMng);
-          clbH.ltPlayer.Add(plMng);
+      Stopwatch sw = new Stopwatch();
+      sw.Start();
+
+      int iGames = nGames;
+      while (iGames > 0) {
+        Debug.WriteLine(" Remaining games: " + iGames.ToString());
+
+        CornerkickManager.Main mn = new CornerkickManager.Main();
+
+        List<CornerkickManager.Main.GameDataPlus> ltGameData = new List<CornerkickManager.Main.GameDataPlus>();
+
+        for (int iG = 0; iG < nGamesPerChunk; iG++) {
+          CornerkickGame.Game gameTest = game.tl.getDefaultGame(iPlayerSkillsH: iPlayerSkillsH, iPlayerSkillsA: iPlayerSkillsA, iClubIdStart: mn.ltClubs.Count, iPlIdStart: mn.ltPlayer.Count);
+
+          // Set game speed
+          gameTest.data.iGameSpeed = iGameSpeed;
+
+          CornerkickManager.Club clbH = new CornerkickManager.Club();
+          CornerkickManager.Club clbA = new CornerkickManager.Club();
+
+          // Set club id's
+          clbH.iId = gameTest.data.team[0].iTeamId;
+          clbA.iId = gameTest.data.team[1].iTeamId;
+
+          // Set club formations
+          clbH.ltTactic[0].formation = mn.ltFormationen[8];
+          clbA.ltTactic[0].formation = mn.ltFormationen[8];
+
+          foreach (CornerkickGame.Player pl in gameTest.player[0]) {
+            CornerkickManager.Player plMng = new CornerkickManager.Player() { plGame = pl };
+            mn.ltPlayer.Add(plMng);
+            clbH.ltPlayer.Add(plMng);
+          }
+          foreach (CornerkickGame.Player pl in gameTest.player[1]) {
+            CornerkickManager.Player plMng = new CornerkickManager.Player() { plGame = pl };
+            mn.ltPlayer.Add(plMng);
+            clbA.ltPlayer.Add(plMng);
+          }
+          mn.ltClubs.Add(clbH);
+          mn.ltClubs.Add(clbA);
+
+          CornerkickManager.Main.GameDataPlus gdp = new CornerkickManager.Main.GameDataPlus();
+          gdp.gd = gameTest.data;
+          ltGameData.Add(gdp);
+
+          iGames--;
+          if (iGames <= 0) break;
         }
-        foreach (CornerkickGame.Player pl in gameTest.player[1]) {
-          CornerkickManager.Player plMng = new CornerkickManager.Player() { plGame = pl };
-          mn.ltPlayer.Add(plMng);
-          clbA.ltPlayer.Add(plMng);
-        }
-        mn.ltClubs.Add(clbH);
-        mn.ltClubs.Add(clbA);
 
-        CornerkickManager.Main.GameDataPlus gdp = new CornerkickManager.Main.GameDataPlus();
-        gdp.gd = gameTest.data;
-        ltGameData.Add(gdp);
+        bool bOk = mn.doGames(ltGameData, bBackground: true);
+
+        Assert.AreEqual(true, bOk);
+
+        CollectPostGamesData(ltGameData, pgd);
       }
 
-      bool bOk = mn.doGames(ltGameData, bBackground: true);
+      // Stop stopwatch
+      sw.Stop();
 
-      Assert.AreEqual(true, bOk);
+      PostGames(sTestResultLog, pgd, iPlayerSkillsH, iPlayerSkillsA, sw.ElapsedMilliseconds);
 
+      /*
       int iGH = 0;
       int iGA = 0;
       int iV = 0;
@@ -1825,6 +1945,7 @@ namespace CornerkickUnitTest
       Debug.WriteLine("Total: " + iGH.ToString() + ":" + iGA.ToString());
       Debug.WriteLine("Avrge: " + (iGH / (float)nGames).ToString("0.00") + ":" + (iGA / (float)nGames).ToString("0.00"));
       Debug.WriteLine("Win Home/Draw/Away: " + iV.ToString() + "/" + iD.ToString() + "/" + iL.ToString());
+      */
     }
     
     [TestMethod]
