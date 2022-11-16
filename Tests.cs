@@ -73,7 +73,7 @@ namespace CornerkickUnitTest
         float[] fKeeper = gameTest.getKeeperSkills(plKeeper, plShoot);
         float[] fShoot = gameTest.getShootSkills(plShoot);
         // 76.3 %
-        Assert.AreEqual(0.7626535296440125, CornerkickGame.AI.getChanceShootKeeperSave(fKeeper, fDist, fShoot), 0.0001, "ChanceKeeperSave");
+        Assert.AreEqual(0.7558016777038574, CornerkickGame.AI.getChanceShootKeeperSave(fKeeper, fDist, fShoot), 0.0001, "ChanceKeeperSave");
 
         // aside (0)
         resetPlayerShoot(plShoot, plKeeper, gameTest, iHA);
@@ -162,7 +162,7 @@ namespace CornerkickUnitTest
       fShootSkills = gameTest.getShootSkills(plShoot, 0, ptPassOrigin: new Point(13, 13));
       Assert.AreEqual(7.0, fShootSkills[0], 0.00001);
 
-      fShootSkills = gameTest.getShootSkills(plShoot, 0, ptPassOrigin: new Point(0, 0));
+      fShootSkills = gameTest.getShootSkills(plShoot, 0, ptPassOrigin: new Point(1, 0));
       Assert.AreEqual(10.5, fShootSkills[0], 0.00001);
 
       fShootSkills = gameTest.getShootSkills(plShoot, 0, ptPassOrigin: new Point(0, 13));
@@ -1014,8 +1014,6 @@ namespace CornerkickUnitTest
     [TestMethod]
     public void TestSetPlayerIndTraining()
     {
-      CornerkickManager.Main mn = new CornerkickManager.Main();
-
       const int nTests = 10000;
       int iCounterReaction = 0;
       int iCounterShootAcc = 0;
@@ -1078,7 +1076,7 @@ namespace CornerkickUnitTest
       fMood /= iRepeat;
 
       // Test average mood
-      Assert.AreEqual(0.715, fMood, 0.01);
+      Assert.AreEqual(0.607, fMood, 0.01);
 
       ///////////////////////////////////////////////////////////////////
       // Test bonus offered < bonus req.
@@ -1091,7 +1089,7 @@ namespace CornerkickUnitTest
       fMood /= iRepeat;
 
       // Test average mood
-      Assert.AreEqual(0.620, fMood, 0.01);
+      Assert.AreEqual(0.570, fMood, 0.01);
     }
 
     [TestMethod]
