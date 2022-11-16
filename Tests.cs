@@ -1093,6 +1093,26 @@ namespace CornerkickUnitTest
     }
 
     [TestMethod]
+    public void TestScouting()
+    {
+      CornerkickManager.Main.Staff.Scout scout = new CornerkickManager.Main.Staff.Scout(iSkill: 4);
+      Assert.AreEqual(Math.Sqrt(0.5), scout.getSigma());
+
+      scout = new CornerkickManager.Main.Staff.Scout(iSkill: 2);
+      Assert.AreEqual(1.0, scout.getSigma());
+
+      CornerkickGame.Player pl = new CornerkickGame.Player(7);
+
+      double[] fScRnd = { 0.1, 0.2, 0.8, 0.9 };
+      int[] iScRes = { -1, 0, 0, +1 };
+      for (int i = 0; i < fScRnd.Length; i++) {
+        List<CornerkickManager.Main.Staff.Scout.PlayerData.Details> ltScDetails = scout.scoutPlayer(pl, DateTime.Now, rndScouting: fScRnd[i]);
+        Assert.AreEqual(1, ltScDetails.Count);
+        Assert.AreEqual(iScRes[i], ltScDetails[0].iSkill - pl.iSkill[ltScDetails[0].iSkillIx]);
+      }
+    }
+
+    [TestMethod]
     public void TestToilets()
     {
       const int iSpecPotVIP = 960;
