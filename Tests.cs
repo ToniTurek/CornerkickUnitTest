@@ -1095,15 +1095,27 @@ namespace CornerkickUnitTest
     [TestMethod]
     public void TestScouting()
     {
-      CornerkickManager.Main.Staff.Scout scout = new CornerkickManager.Main.Staff.Scout(iSkill: 4);
-      Assert.AreEqual(Math.Sqrt(0.5), scout.getSigma());
+      CornerkickManager.Main.Staff.Scout scout = new CornerkickManager.Main.Staff.Scout(iSkill: 5);
+      //Assert.AreEqual(Math.Sqrt(0.5), scout.getSigma());
 
-      scout = new CornerkickManager.Main.Staff.Scout(iSkill: 2);
+      //scout = new CornerkickManager.Main.Staff.Scout(iSkill: 4);
       Assert.AreEqual(1.0, scout.getSigma());
+
+      Assert.AreEqual(0.158655253931457, CornerkickGame.Tool.normal_dist(-1, scout.getSigma()), 0.000001); // 15.866% * 2 = 31.73% risk for -1/+1
+      Assert.AreEqual(0.022750131948179, CornerkickGame.Tool.normal_dist(-2, scout.getSigma()), 0.000001); //  2.275% * 2 =  4.55% risk for -2/+2
+      Assert.AreEqual(0.001349898031630, CornerkickGame.Tool.normal_dist(-3, scout.getSigma()), 0.000001); //  0.135% * 2 =  0.27% risk for -3/+3
+      Assert.AreEqual(0.841344746068543, CornerkickGame.Tool.normal_dist(+1, scout.getSigma()), 0.000001);
+
+      /* Skill = 4
+      Assert.AreEqual(0.124106539494962, CornerkickGame.Tool.normal_dist(-1, scout.getSigma()), 0.000001); // 12.411% * 2 = 24.82% risk for -1/+1
+      Assert.AreEqual(0.010460667668897, CornerkickGame.Tool.normal_dist(-2, scout.getSigma()), 0.000001); //  1.046% * 2 =  2.09% risk for -2/+2
+      Assert.AreEqual(0.000266002752570, CornerkickGame.Tool.normal_dist(-3, scout.getSigma()), 0.000001); //  0.027% * 2 =  0.05% risk for -3/+3
+      Assert.AreEqual(0.875893460505038, CornerkickGame.Tool.normal_dist(+1, scout.getSigma()), 0.000001);
+      */
 
       CornerkickGame.Player pl = new CornerkickGame.Player(7);
 
-      double[] fScRnd = { 0.1, 0.2, 0.8, 0.9 };
+      double[] fScRnd = { 0.15, 0.16, 0.84, 0.85 };
       int[] iScRes = { -1, 0, 0, +1 };
       for (int i = 0; i < fScRnd.Length; i++) {
         List<CornerkickManager.Main.Staff.Scout.PlayerData.Details> ltScDetails = scout.scoutPlayer(pl, DateTime.Now, rndScouting: fScRnd[i]);
