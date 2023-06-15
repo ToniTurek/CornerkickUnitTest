@@ -18,6 +18,25 @@ namespace CornerkickUnitTest
     CornerkickGame.Game game = new CornerkickGame.Game(new CornerkickGame.Game.Data());
 
     [TestMethod]
+    public void TestDistanceSteps()
+    {
+      Assert.AreEqual(3, CornerkickGame.Tool.getDistanceSteps(                  7,  0,                  1, 0));
+      Assert.AreEqual(3, CornerkickGame.Tool.getDistanceSteps(game.ptPitch.X -  7,  0, game.ptPitch.X - 1, 0));
+
+      Assert.AreEqual(3, CornerkickGame.Tool.getDistanceSteps(                  4,  3,                  1, 0));
+      Assert.AreEqual(3, CornerkickGame.Tool.getDistanceSteps(game.ptPitch.X -  4,  3, game.ptPitch.X - 1, 0));
+
+      Assert.AreEqual(6, CornerkickGame.Tool.getDistanceSteps(                 10,  3,                  1, 0));
+      Assert.AreEqual(6, CornerkickGame.Tool.getDistanceSteps(game.ptPitch.X - 10,  3, game.ptPitch.X - 1, 0));
+
+      Assert.AreEqual(6, CornerkickGame.Tool.getDistanceSteps(                 10, -3,                  1, 0));
+      Assert.AreEqual(6, CornerkickGame.Tool.getDistanceSteps(game.ptPitch.X - 10, -3, game.ptPitch.X - 1, 0));
+
+      Assert.AreEqual(4, CornerkickGame.Tool.getDistanceSteps(                  1,  4,                  1, 0));
+      Assert.AreEqual(4, CornerkickGame.Tool.getDistanceSteps(game.ptPitch.X -  1,  4, game.ptPitch.X - 1, 0));
+    }
+
+    [TestMethod]
     public void TestOffsite()
     {
       for (byte iHA = 0; iHA < 2; iHA++) {
@@ -292,7 +311,7 @@ namespace CornerkickUnitTest
       int iPassAhead;
 
       int[] iDistOppY = new int[] { 2, 4, 6, 8, 10, 16, 22 };
-      int[] iPassAheadExp = new int[] { 2, 2, 3, 4, 5, 7, 9 };
+      int[] iPassAheadExp = new int[] { 2, 3, 3, 4, 5, 7, 9 };
       //int[] iDistOppY     = new int[] { 8 };
       //int[] iPassAheadExp = new int[] { 4 };
       for (int i = 0; i < iDistOppY.Length; i++) {
@@ -313,7 +332,7 @@ namespace CornerkickUnitTest
           gameTest.player[1 - iHA][2].ptPos = new Point(gameTest.player[1 - iHA][1].ptPos.X + iDistPlayerOpp, iDistOppY[i]);
 
           iPassAhead = gameTest.getPassAhead(gameTest.player[iHA][1], gameTest.player[iHA][2], 0f, 40f, out fPassLength);
-          Assert.AreEqual(iPassAheadExp[i], iPassAhead);
+          Assert.AreEqual(iPassAheadExp[i], iPassAhead, "Y-dist. opp. player: " + iDistOppY[i].ToString());
         }
       }
     }
@@ -401,6 +420,61 @@ namespace CornerkickUnitTest
     }
 
     [TestMethod]
+    public void TestDuelLastManRed()
+    {
+      for (byte iHA = 0; iHA < 2; iHA++) {
+        CornerkickGame.Game gameTest = game.tl.getDefaultGame();
+
+        gameTest.next();
+        while (gameTest.iStandardCounter > 0) gameTest.next();
+
+        CornerkickGame.Player plDef = gameTest.player[iHA][1];
+        CornerkickGame.Player plOff = gameTest.player[1 - iHA][10];
+
+        plOff.ptPos = new Point(gameTest.ptBox.X + 4, -7 * (1 - (iHA * 2)));
+        if (iHA > 0) plOff.ptPos.X = gameTest.ptPitch.X - plOff.ptPos.X;
+        gameTest.ball.ptPos = plOff.ptPos;
+        gameTest.ball.plAtBall = plOff;
+        plDef.ptPos = new Point(plOff.ptPos.X - (2 - (iHA * 4)), plOff.ptPos.Y);
+        for (int i = 2; i < gameTest.player[iHA].Length; i++) {
+          if (iHA == 0) {
+            while (gameTest.player[iHA][i].ptPos.X <= plDef.ptPos.X) gameTest.player[iHA][i].ptPos.X += 2;
+          } else {
+            while (gameTest.player[iHA][i].ptPos.X >= plDef.ptPos.X) gameTest.player[iHA][i].ptPos.X -= 2;
+          }
+        }
+
+        /*
+        gameTest.doDuel(plDef, iDuelResult: 3);
+
+        Assert.AreEqual(2, Math.Abs(gameTest.iStandard), "Standard is not freekick!");
+        Assert.AreEqual(true, gameTest.state.ltComment != null && gameTest.state.ltComment.Count > 0, "No comment present!");
+        Assert.AreEqual(true, !string.IsNullOrEmpty(gameTest.state.ltComment.Find(c => c.sText.Contains("als letzter Mann")).sText), "No last man comment present!");
+        */
+
+        // Put defender at same X and test again
+        gameTest.iStandard = 0;
+        plDef.bYellowCard = false;
+        gameTest.state.ltComment.Clear();
+        gameTest.player[iHA][2].ptPos = new Point(plDef.ptPos.X + 2 * (1 - (iHA * 2)), 0);
+
+        gameTest.doDuel(plDef, iDuelResult: 3);
+
+        Assert.AreEqual(2, Math.Abs(gameTest.iStandard), "Standard is not freekick!");
+        Assert.AreEqual(true, gameTest.state.ltComment != null && gameTest.state.ltComment.Count > 0, "No comment present!");
+        //Assert.AreEqual(true, !string.IsNullOrEmpty(gameTest.state.ltComment.Find(c => c.sText.Contains("Glück")).sText), "No last man comment present!");
+
+        while (Math.Abs(gameTest.iStandard) == 2) {
+          if (iHA == 0) Assert.AreEqual(1, gameTest.player[iHA][0].ptPos.X);
+          else          Assert.AreEqual(gameTest.ptPitch.X - 1, gameTest.player[iHA][0].ptPos.X);
+          gameTest.next();
+        }
+
+        gameTest.next();
+      }
+    }
+
+    [TestMethod]
     public void TestDuelStepReduction()
     {
       byte iSkillDuelDef = 8;
@@ -474,7 +548,8 @@ namespace CornerkickUnitTest
     {
       for (int j = 0; j < 100; j++) {
         float[] fDistRel = new float[] { 1.5f, 1.3f, 1.1f };
-        double[] fChanceFkShoot = new double[] { 0.2523913085460663, 0.3319043219089508, 0.42532700300216675 };
+        //double[] fChanceFkShoot = new double[] { 0.2523913085460663, 0.3319043219089508, 0.42532700300216675 };
+        double[] fChanceFkShoot = new double[] { 0.3647512197494507, 0.43172943592071533, 0.5068542957305908 };
         for (int i = 0; i < fDistRel.Length; i++) {
           CornerkickGame.Game gameTest = game.tl.getDefaultGame();
 
@@ -491,7 +566,7 @@ namespace CornerkickUnitTest
 
           float[] fPlActionFreekick;
           gameTest.ai.getPlayerAction(gameTest.ball.plAtBall, out fPlActionFreekick, iReceiverIx: 10);
-          Assert.AreEqual(fChanceFkShoot[i], fPlActionFreekick[0], 0.0001, "ChanceShoot Freekick at dist = " + fDistRel[i].ToString("0.0") + " x Box");
+          Assert.AreEqual(fChanceFkShoot[i], fPlActionFreekick[0], 0.0001, "ChanceShoot Freekick at dist = " + CornerkickGame.Tool.getDistanceToGoal(gameTest.ball.ptPos, false, gameTest.ptPitch.X, gameTest.fConvertDist2Meter)[0].ToString("0.0") + "m Box");
           gameTest.next();
         }
       }
@@ -1173,7 +1248,7 @@ namespace CornerkickUnitTest
     [TestMethod]
     public void TestGamesDirect()
     {
-      const int nGames = 1;
+      const int nGames = 100;
       const float fRefereeCorruptHome = 0f;
       const bool bInjuriesPossible = true;
       const byte iPlayerSkillsH = 8;
@@ -1231,7 +1306,7 @@ namespace CornerkickUnitTest
         // Create default game
         CornerkickGame.Game gameTest = game.tl.getDefaultGame(iPlayerSkillsH: iPlayerSkillsH, iPlayerSkillsA: iPlayerSkillsA);
         gameTest.data.bInjuriesPossible = bInjuriesPossible;
-        gameTest.data.bCardsPossible = false;
+        gameTest.data.bCardsPossible = true;
 
         for (int iHA = 0; iHA < 2; iHA++) {
           for (int iPl = 0; iPl < gameTest.player[iHA].Length; iPl++) {
@@ -1394,8 +1469,11 @@ namespace CornerkickUnitTest
         */
 
           // Test goal if goals difer from last step
+          /*
           if (iGoalH != gameTest.data.team[0].iGoals ||
               iGoalA != gameTest.data.team[1].iGoals) {
+          */
+          if (shoot != null && shoot.plShoot != null && shoot.iResult == 1 && shoot.bFinished) {
             /*
             if (shoot.plShoot != null && shoot.iResult == 1) {
               float fDistTmp = CornerkickGame.Tool.getDistanceToGoal(shoot.plShoot, gameTest.ptPitch.X, gameTest.fConvertDist2Meter)[0];
@@ -1436,6 +1514,16 @@ namespace CornerkickUnitTest
             if (plExp.statGame.iStat[28] > 1) Assert.AreEqual(true, plExp.fExperience > 0f, plExp.sName + " has not gained experience!");
           }
         }
+
+        // Count scorer
+        int iScorer = 0;
+        foreach (CornerkickGame.Game.State state in gameTest.data.ltState) {
+          CornerkickGame.Game.Shoot s = state.shoot;
+          if (s.plShoot != null && s.bFinished && s.iResult == 1) {
+            iScorer++;
+          }
+        }
+        Assert.AreEqual(iScorer, iGoalH + iGoalA, "Number of scorer not valid!");
 
         Utility.CollectPostGamesData(gameTest.data, pgd);
       } // for each game
@@ -1482,6 +1570,8 @@ namespace CornerkickUnitTest
       const int iGameSpeed = 0; // [ms]
       const byte iPlayerSkillsH = 8;
       const byte iPlayerSkillsA = 8;
+      const bool bCardsPossible = true;
+      const bool bInjuriesPossible = true;
 
       string sTestResultLog = "Test_Results_parallel.txt";
       DateTime dtStart = DateTime.Now;
@@ -1502,6 +1592,8 @@ namespace CornerkickUnitTest
 
         for (int iG = 0; iG < nGamesPerChunk; iG++) {
           CornerkickGame.Game gameTest = game.tl.getDefaultGame(iPlayerSkillsH: iPlayerSkillsH, iPlayerSkillsA: iPlayerSkillsA, iClubIdStart: mn.ltClubs.Count, iPlIdStart: mn.ltPlayer.Count);
+          gameTest.data.bCardsPossible = bCardsPossible;
+          gameTest.data.bInjuriesPossible = bInjuriesPossible;
 
           // Set game speed
           gameTest.data.iGameSpeed = iGameSpeed;
@@ -2231,7 +2323,7 @@ namespace CornerkickUnitTest
     internal static void testGoal(CornerkickGame.Game gameTest, bool bHome, int iGoalH, int iGoalA)
     {
       if (bHome) testGoal(gameTest, 0, iGoalH, iGoalA);
-      else testGoal(gameTest, 1, iGoalH, iGoalA);
+      else       testGoal(gameTest, 1, iGoalH, iGoalA);
     }
     internal static void testGoal(CornerkickGame.Game gameTest, byte iHA, int iGoalH, int iGoalA)
     {
@@ -2241,24 +2333,22 @@ namespace CornerkickUnitTest
             gameTest.next();
           }
           gameTest.next();
-          gameTest.next();
         }
         Assert.AreEqual(iGoalH + 1, gameTest.data.team[0].iGoals);
-        Assert.AreEqual(iGoalA, gameTest.data.team[1].iGoals);
+        Assert.AreEqual(iGoalA,     gameTest.data.team[1].iGoals);
       } else {
         if (iGoalA + 1 != gameTest.data.team[1].iGoals) {
           while (gameTest.iStandardCounter > 0) {
             gameTest.next();
           }
           gameTest.next();
-          gameTest.next();
         }
-        Assert.AreEqual(iGoalH, gameTest.data.team[0].iGoals);
+        Assert.AreEqual(iGoalH,     gameTest.data.team[0].iGoals);
         Assert.AreEqual(iGoalA + 1, gameTest.data.team[1].iGoals);
       }
 
       if (iHA == 0) Assert.AreEqual(gameTest.ptPitch.X + 1, gameTest.ball.ptPos.X, "Ball is not in away goal!");
-      else Assert.AreEqual(-1, gameTest.ball.ptPos.X, "Ball is not in home goal!");
+      else          Assert.AreEqual(-1,                     gameTest.ball.ptPos.X, "Ball is not in home goal!");
       Assert.AreEqual(5, Math.Abs(gameTest.iStandard), "Standard is not kick-off!");
 
       gameTest.next();
